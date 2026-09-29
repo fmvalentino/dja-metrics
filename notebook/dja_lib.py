@@ -45,6 +45,16 @@ CTX_RE  = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in ARCHIVE_CONTEXT) 
 # that builds and runs the DJA. Used for the "external adoption" community stat.
 DAWN_RE = re.compile(r"cosmic dawn", re.I)
 
+# Known DAWN/DJA core-team members whose ADS affiliation string doesn't reliably say
+# "Cosmic Dawn" (e.g. Brammer's papers mostly just say "Niels Bohr Institute, University
+# of Copenhagen" -- true, but not distinctive: plenty of non-DAWN astronomers share that
+# affiliation, so matching on it directly would be a false-positive risk of its own).
+# A paper with one of these people as an author is DAWN-affiliated regardless of wording.
+# Keyed by ORCID -- see dawn_affiliated().
+DAWN_TEAM_ORCIDS = {
+    "0000-0003-2680-005X": "Gabriel Brammer",
+}
+
 
 def ads_get(token, path, params):
     r = requests.get(ADS_BASE + path, headers={"Authorization": f"Bearer {token}"},
@@ -204,8 +214,18 @@ def first_author(doc):
     return au[0] if au else None
 
 
-def dawn_affiliated(doc):
-    """True if any author's ADS affiliation string mentions the Cosmic Dawn Center."""
+def dawn_affiliated(doc, identities=None):
+    """
+    True if the affiliation text says "Cosmic Dawn", OR any author resolves (via
+    `identities`, from resolve_authors -- ORCID first, so this also catches records
+    where this particular paper's ORCID field is blank but another of that person's
+    papers carries it) to a name in DAWN_TEAM_ORCIDS.
+    """
+    if identities:
+        for i in range(len(doc.get("author") or [])):
+            key = identities.get((doc["bibcode"], i))
+            if key and key[0] == "orcid" and key[1] in DAWN_TEAM_ORCIDS:
+                return True
     return any(DAWN_RE.search(a) for a in (doc.get("aff") or []) if a and a != "-")
 
 
@@ -325,7 +345,7 @@ def resolve_authors(docs):
     return identities, coverage
 
 
-def results_to_df(results, ads_abs_fmt, galaxy_classes):
+def results_to_df(results, ads_abs_fmt, galaxy_classes, identities=None):
     """results: list of {'doc': ..., 'scored': ...} -> one row per paper."""
     import pandas as pd
 
@@ -343,7 +363,7 @@ def results_to_df(results, ads_abs_fmt, galaxy_classes):
             "n_authors":      n_authors(doc),
             "first_author":   first_author(doc),
             "authors":        " | ".join(doc.get("author") or []),
-            "dawn_author":    dawn_affiliated(doc),
+            "dawn_author":    dawn_affiliated(doc, identities),
             "score":          sc["score"],
             "reason":         sc["reason"],
         })

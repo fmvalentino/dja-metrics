@@ -70,6 +70,16 @@ INITIALS_RE = re.compile(
 CTX_RE  = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in ARCHIVE_CONTEXT) + r")\b", re.I)
 DAWN_RE = re.compile(r"cosmic dawn", re.I)
 
+# Known DAWN/DJA core-team members whose ADS affiliation string doesn't reliably say
+# "Cosmic Dawn" (e.g. Brammer's papers mostly just say "Niels Bohr Institute, University
+# of Copenhagen" -- true, but not distinctive: plenty of non-DAWN astronomers share that
+# affiliation, so matching on it directly would be a false-positive risk of its own).
+# A paper with one of these people as an author is DAWN-affiliated regardless of wording.
+# Keyed by ORCID -- see dawn_affiliated().
+DAWN_TEAM_ORCIDS = {
+    "0000-0003-2680-005X": "Gabriel Brammer",
+}
+
 
 def ads_get(path, params):
     r = requests.get(ADS_BASE + path, headers={"Authorization": f"Bearer {ADS_TOKEN}"},
@@ -212,7 +222,18 @@ def first_author(doc):
     return au[0] if au else None
 
 
-def dawn_affiliated(doc):
+def dawn_affiliated(doc, identities=None):
+    """
+    True if the affiliation text says "Cosmic Dawn", OR any author resolves (via
+    `identities`, from resolve_authors -- ORCID first, so this also catches records
+    where this particular paper's ORCID field is blank but another of that person's
+    papers carries it) to a name in DAWN_TEAM_ORCIDS.
+    """
+    if identities:
+        for i in range(len(doc.get("author") or [])):
+            key = identities.get((doc["bibcode"], i))
+            if key and key[0] == "orcid" and key[1] in DAWN_TEAM_ORCIDS:
+                return True
     return any(DAWN_RE.search(a) for a in (doc.get("aff") or []) if a and a != "-")
 
 
@@ -378,6 +399,13 @@ def discover():
 def main():
     clean, contaminants, _scored = discover()
 
+    # Merge author name variants ("Smith, J." / "Smith, John") into one identity where
+    # possible -- see resolve_authors's docstring for exactly how and its limits. Computed
+    # before the dawn_affiliated loop below, which also uses it (DAWN_TEAM_ORCIDS).
+    identities, orcid_coverage = resolve_authors(clean)
+    unique_people = len(set(identities.values()))
+    unique_first_authors = len({identities[(d["bibcode"], 0)] for d in clean if d.get("author")})
+
     by_year = Counter()
     citations_by_year = Counter()
     dawn_count = 0
@@ -386,14 +414,8 @@ def main():
         if y and str(y).isdigit():
             by_year[int(y)] += 1
             citations_by_year[int(y)] += doc.get("citation_count", 0) or 0
-        if dawn_affiliated(doc):
+        if dawn_affiliated(doc, identities):
             dawn_count += 1
-
-    # Merge author name variants ("Smith, J." / "Smith, John") into one identity where
-    # possible -- see resolve_authors's docstring for exactly how and its limits.
-    identities, orcid_coverage = resolve_authors(clean)
-    unique_people = len(set(identities.values()))
-    unique_first_authors = len({identities[(d["bibcode"], 0)] for d in clean if d.get("author")})
 
     median_authors = sorted(n_authors(d) for d in clean)
     median_authors = median_authors[len(median_authors) // 2] if median_authors else 0
