@@ -29,6 +29,7 @@ import requests
 ROOT       = Path(__file__).resolve().parent.parent
 DATA_JSON  = ROOT / "data" / "metrics.json"
 FLAGS_CSV  = ROOT / "data" / "manual_flags.csv"   # manual clean/contaminant corrections, see README
+LIBRARY_ID_FILE = ROOT / "data" / "ads_library_id.txt"   # id of the curated ADS Library, see sync_ads_library.py
 
 ADS_TOKEN  = os.environ.get("ADS_TOKEN")
 ADS_BASE   = "https://api.adsabs.harvard.edu/v1"
@@ -194,7 +195,13 @@ def dawn_affiliated(doc):
     return any(DAWN_RE.search(a) for a in (doc.get("aff") or []) if a and a != "-")
 
 
-def main():
+def discover():
+    """
+    Run the live ADS search + scoring pipeline. Returns (clean, contaminants),
+    each a list of ADS doc dicts. Shared by this script's monthly metrics refresh
+    and sync_ads_library.py's slower, human-reviewed library sync, so the two
+    never drift apart on what counts as "confirmed."
+    """
     if not ADS_TOKEN:
         sys.exit("ADS_TOKEN environment variable is not set -- see README.md")
 
@@ -223,6 +230,11 @@ def main():
         (clean if group == "clean" else contaminants).append(doc)
     print(f"{len(clean)} confirmed DJA papers "
           f"({sum(1 for v in flags.values() if v == 'clean')} manually corrected in)")
+    return clean, contaminants
+
+
+def main():
+    clean, contaminants = discover()
 
     by_year = Counter()
     citations_by_year = Counter()
@@ -281,8 +293,15 @@ def main():
                                       "the Cosmic Dawn Center. An upper bound: an affiliate whose "
                                       "entry omits the center's name would be miscounted as external.",
         },
+        # Live, always-current ADS search, false positives already identified excluded.
+        # Secondary link -- the button on the page points at ads_library_url instead.
         "ads_search_url": "https://ui.adsabs.harvard.edu/search/q="
             + urllib.parse.quote(search_q) + "&sort=date%20desc",
+        # A curated ADS Library: a fixed, human-reviewed set of bibcodes (see
+        # scripts/sync_ads_library.py), not a live query -- no false positives, ever,
+        # but only as current as the last manual sync (roughly every 6 months).
+        "ads_library_url": ("https://ui.adsabs.harvard.edu/public-libraries/"
+                             + LIBRARY_ID_FILE.read_text().strip()) if LIBRARY_ID_FILE.exists() else None,
     }
 
     DATA_JSON.parent.mkdir(parents=True, exist_ok=True)

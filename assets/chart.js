@@ -101,6 +101,15 @@ async function main() {
   });
 
   document.getElementById("ads-search-link").href = data.ads_search_url;
+
+  const libLink = document.getElementById("ads-library-link");
+  if (data.ads_library_url) {
+    libLink.href = data.ads_library_url;
+  } else {
+    // no library synced yet (see scripts/sync_ads_library.py) -- fall back to the live search
+    libLink.href = data.ads_search_url;
+    libLink.textContent = "Search ADS →";
+  }
 }
 
 main();

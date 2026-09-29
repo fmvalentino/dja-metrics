@@ -26,12 +26,15 @@ updates of ADS/NASA
   affiliation string omits its name is miscounted as external.
 - *Median authors per paper*.
 
-**A live search link.** One button opens the same full-text query this page
-is built from, running directly on NASA ADS, with every paper already
-identified as a false positive excluded by name (`NOT bibcode:"..."` for each
-one, built fresh into the link on every monthly run). A paper that appeared
-too recently to have been scored and reviewed yet can still show up here
-before it does in the count above — that gap is normally a few weeks at most.
+**A curated library, not a live search.** The button opens
+[an ADS Library](https://ui.adsabs.harvard.edu/public-libraries/oRy6GKOGTZuLWFsERj_QHg)
+holding exactly the confirmed papers — sortable, exportable, with ADS's own
+citation metrics. It's a fixed list, synced by hand roughly every 6 months
+(`scripts/sync_ads_library.py`), not a live query, so nothing but confirmed
+DJA papers ever shows up there. The methodology section also links a second,
+always-current search on ADS with known false positives excluded by bibcode —
+useful for checking what's arrived since the last library sync, at the cost
+of occasionally showing a paper that hasn't been reviewed yet.
 
 ## Where the numbers come from
 
@@ -47,10 +50,23 @@ the automatic score gets wrong are corrected by hand and recorded in
 
 ## How it stays current
 
-`scripts/update_metrics.py` reruns this search once a month
-(`.github/workflows/update.yml`, 1st of the month) and commits the refreshed
-`data/metrics.json`, which `index.html` reads at load time. No server, no
-database, no build step.
+Two different cadences, on purpose:
+
+- **The numbers on the page** (`data/metrics.json`) refresh monthly,
+  automatically — `scripts/update_metrics.py` runs on the 1st
+  (`.github/workflows/update.yml`) and commits whatever it finds. A brand-new
+  false positive can sit in the count for up to a few weeks, until the next
+  manual review; historically that's been rare (45 of 478 candidates ever,
+  ~9%, mostly caught the first time).
+- **The curated ADS Library** (the "Explore it yourself" button) only updates
+  when a person runs `scripts/sync_ads_library.py` and reviews the diff —
+  roughly every 6 months. It never changes automatically, so it can never show
+  an unreviewed paper.
+
+```
+ADS_TOKEN=... python scripts/sync_ads_library.py            # dry run: prints the diff only
+ADS_TOKEN=... python scripts/sync_ads_library.py --apply    # applies it, after you've read the diff
+```
 
 ## Reproduce it yourself
 
@@ -66,10 +82,12 @@ is a separate, larger study and is not part of this page or this notebook.
 
 ```
 index.html                   the page
-assets/style.css, chart.js   styling and the bar chart, no dependencies
+assets/style.css, chart.js   styling and the two bar charts, no dependencies
 data/metrics.json            the numbers currently on the page
 data/manual_flags.csv        manually corrected papers (see "Where the numbers come from")
-scripts/update_metrics.py    rebuilds data/metrics.json from ADS
-.github/workflows/update.yml monthly rebuild
+data/ads_library_id.txt      id of the curated ADS Library the "Explore" button links to
+scripts/update_metrics.py    rebuilds data/metrics.json from ADS -- monthly, automatic
+scripts/sync_ads_library.py  syncs the curated library -- manual, ~every 6 months
+.github/workflows/update.yml monthly rebuild of data/metrics.json only
 notebook/                    a runnable example that reproduces the numbers above
 ```

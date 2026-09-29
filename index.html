@@ -79,13 +79,15 @@
     <h2>Explore it yourself</h2>
     <div class="search-panel">
       <div class="copy">
-        <strong>See the current search live on ADS.</strong>
-        <p>Opens the same full-text query this page is built from, running right now on NASA ADS,
-          with papers already identified as false positives (unrelated uses of &ldquo;DJA&rdquo;)
-          excluded. A paper that showed up too recently to be reviewed yet may still appear here
-          before it does in the count above.</p>
+        <strong>Browse the curated list on ADS.</strong>
+        <p>Every confirmed paper above, as an ADS Library &mdash; sortable, exportable
+          (BibTeX and more), with ADS's own citation metrics built in. A fixed list, not
+          a live search, so nothing but confirmed DJA papers ever shows up here. Synced
+          by hand roughly every 6 months; see
+          <a href="#methodology">methodology</a> for the live, always-current search
+          this is checked against.</p>
       </div>
-      <a id="ads-search-link" class="button primary" href="#" target="_blank" rel="noopener">Search ADS &rarr;</a>
+      <a id="ads-library-link" class="button primary" href="#" target="_blank" rel="noopener">Browse library &rarr;</a>
     </div>
   </section>
 
@@ -97,6 +99,9 @@
       unrelated match, then reviewed by hand where the automatic score is ambiguous. Runnable
       example, reproducing the numbers above end to end:
       <a href="https://github.com/fmvalentino/dja-metrics/blob/main/notebook/dja_discovery_example.ipynb" target="_blank" rel="noopener">dja_discovery_example.ipynb</a>.
+      To see this same search running live on ADS right now, with only the false positives
+      already caught excluded &mdash; rather than the fixed, hand-checked library above &mdash;
+      use <a id="ads-search-link" href="#" target="_blank" rel="noopener">this link</a>.
     </p>
     <p id="load-error" class="section-note" hidden style="color:#b23b3b;">
       Could not load the current numbers (data/metrics.json). Try again in a moment.
