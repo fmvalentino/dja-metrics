@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DJA Papers &amp; Community</title>
+<meta name="description" content="Live count of papers using the Dawn JWST Archive, and who is using it, rebuilt monthly from NASA ADS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,400italic,600italic|Roboto+Slab:400,700" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Dawn JWST Archive</div>
+    <h1>Papers &amp; community</h1>
+    <p class="lede">How many papers use DJA data, how fast that number is growing, and how many
+      different people are behind them &mdash; rebuilt every month from a live NASA ADS search,
+      not a hand-kept list.</p>
+  </header>
+
+  <section id="growth">
+    <h2>Confirmed DJA papers</h2>
+    <p class="section-note">A paper counts once it is confirmed, by full-text search plus manual
+      review, to actually use DJA data products &mdash; not just mention JWST or cite the archive
+      in passing. See <a href="#methodology">methodology</a>.</p>
+    <div class="hero">
+      <div class="count-block">
+        <div class="count" id="total-papers">&hellip;</div>
+        <div class="count-label">papers to date</div>
+      </div>
+      <div class="chart-block">
+        <svg id="growth-chart" role="img" aria-label="Confirmed DJA papers by publication year"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section id="community">
+    <h2>Who is using it</h2>
+    <p class="section-note">Citation counts show a paper got noticed; these numbers are about who
+      is actually behind the work.</p>
+    <dl class="stats">
+      <div class="stat">
+        <dt id="stat-authors">&hellip;</dt>
+        <dd>unique author names across all DJA papers
+          <span class="stat-note">Name-string match &mdash; a floor, not an exact headcount.</span>
+        </dd>
+      </div>
+      <div class="stat">
+        <dt id="stat-first-authors">&hellip;</dt>
+        <dd>different people have led a DJA paper
+          <span class="stat-note">Counts distinct first authors, not just papers.</span>
+        </dd>
+      </div>
+      <div class="stat">
+        <dt id="stat-external">&hellip;</dt>
+        <dd>of papers have no Cosmic Dawn Center co-author
+          <span class="stat-note">Upper bound on external, independent use of the archive.</span>
+        </dd>
+      </div>
+      <div class="stat">
+        <dt id="stat-team-size">&hellip;</dt>
+        <dd>median authors per paper</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section id="explore">
+    <h2>Explore it yourself</h2>
+    <div class="search-panel">
+      <div class="copy">
+        <strong>See the current search live on ADS.</strong>
+        <p>Opens the same full-text query this page is built from, running right now on NASA ADS
+          &mdash; this includes some false positives (unrelated uses of &ldquo;DJA&rdquo;) that
+          the count above has already screened out.</p>
+      </div>
+      <a id="ads-search-link" class="button primary" href="#" target="_blank" rel="noopener">Search ADS &rarr;</a>
+    </div>
+  </section>
+
+  <section id="methodology">
+    <h2>Methodology</h2>
+    <p class="section-note">Full-text search on NASA ADS for &ldquo;Dawn JWST Archive&rdquo; or the
+      standalone acronym &ldquo;DJA&rdquo;, published or on arXiv since 2023. Each hit is scored
+      from its highlighted context to separate genuine archive use from a person's initials or an
+      unrelated match, then reviewed by hand where the automatic score is ambiguous. Full pipeline
+      and the wider citation-impact analysis this page is drawn from:
+      <a href="#" target="_blank" rel="noopener">dja_auto_discovery.ipynb</a>
+      <!-- TODO: point this at the notebook's repo once it's pushed -- see README "Before you push". -->
+    </p>
+    <p id="load-error" class="section-note" hidden style="color:#b23b3b;">
+      Could not load the current numbers (data/metrics.json). Try again in a moment.
+    </p>
+  </section>
+
+  <footer class="bottom">
+    <p>Last rebuilt <span id="last-updated">&hellip;</span>, automatically, on the 1st of every
+      month. Numbers come from NASA ADS and can shift slightly between updates as new citations
+      and papers appear.</p>
+  </footer>
+</div>
+
+<script src="assets/chart.js"></script>
+</body>
+</html>

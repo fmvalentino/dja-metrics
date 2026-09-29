@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-09-29T07:23:16+00:00",
+  "total_papers": 433,
+  "by_year": [
+    {
+      "year": 2023,
+      "count": 2,
+      "partial": false
+    },
+    {
+      "year": 2024,
+      "count": 33,
+      "partial": false
+    },
+    {
+      "year": 2025,
+      "count": 148,
+      "partial": false
+    },
+    {
+      "year": 2026,
+      "count": 250,
+      "partial": true
+    }
+  ],
+  "community": {
+    "unique_author_names": 2481,
+    "unique_first_authors": 328,
+    "median_authors_per_paper": 16,
+    "external_adoption_pct": 70.9
+  },
+  "notes": {
+    "unique_author_names": "Name-string match only (e.g. 'Smith, J.' vs 'Smith, John' count separately) -- a floor, not an exact headcount.",
+    "external_adoption_pct": "Share of papers with no author affiliation string mentioning the Cosmic Dawn Center. An upper bound: an affiliate whose entry omits the center's name would be miscounted as external."
+  },
+  "ads_search_url": "https://ui.adsabs.harvard.edu/search/q=full%3A%28%22Dawn%20JWST%20Archive%22%20OR%20%22DJA%22%29%20year%3A%5B2023%20TO%20%2A%5D%20collection%3Aastronomy&sort=date%20desc"
+}
