@@ -1,76 +1,86 @@
-# DJA metrics page
+# DJA papers & community
 
-A small static page showing how many papers use the Dawn JWST Archive, how fast
-that's growing, and roughly who's behind them. It rebuilds itself once a month
-from a live NASA ADS search — no server, no build step, no database.
+Live at **[fmvalentino.github.io/dja-metrics](https://fmvalentino.github.io/dja-metrics/)**.
 
-**Live numbers today:** 433 confirmed papers, 2,481 unique author names, 328
-unique first authors, 71% with no Cosmic Dawn Center co-author. These come
-straight from `dja_auto_discovery.ipynb`'s last full run (2026-09-29); this
-folder's own `data/metrics.json` was seeded from that same run.
+This page tracks how many papers use the Dawn JWST Archive (DJA), how that
+number is growing, and who is behind the work. It is not a citation-advantage
+study — that analysis (DJA papers vs. a matched sample of non-DJA JWST papers,
+bootstrap confidence intervals) lives in `dja_auto_discovery.ipynb` and is
+deliberately left out of this page.
 
-## How it works
+## What it shows
+
+**Confirmed DJA papers.** A running count, currently 433, with a bar chart of
+new papers by publication year (2023: 2, 2024: 33, 2025: 148, 2026: 250 so
+far). A paper is counted once its use of DJA data is confirmed by full-text
+search and, where the automatic score is ambiguous, a manual read of the
+matched passage. Mentioning JWST or citing the archive in passing is not
+enough.
+
+**Community reach.** Four numbers, deliberately simpler than a citation
+count:
+
+- *Unique author names* across all confirmed papers (2,481) — a name-string
+  match, so it is a floor, not an exact headcount: the same person spelled two
+  ways in ADS counts twice.
+- *Unique first authors* (328) — how many different people have led a DJA
+  paper, as opposed to one group publishing repeatedly.
+- *Share with no Cosmic Dawn Center co-author* (70.9%) — papers written
+  entirely outside the group that builds and runs the archive. This is an
+  upper bound on external use: an author from the Center whose ADS
+  affiliation string omits its name is miscounted as external.
+- *Median authors per paper* (16).
+
+**A live search link.** One button opens the same full-text query this page
+is built from, running directly on NASA ADS. It will show more papers than
+the count above, because it has not been through the scoring and manual
+review step.
+
+## Where the numbers come from
+
+Full-text search on ADS for "Dawn JWST Archive" or the standalone acronym
+"DJA", papers from 2023 on, published or on arXiv. Each match is scored from
+its highlighted context: a verbatim "Dawn JWST Archive" scores highest; "DJA"
+next to archive-related terms (pipeline, mosaic, NIRSpec, data release, and
+so on) scores above a bare, context-free "DJA"; a bare "DJA" that reads as a
+person's initials in an acknowledgement is excluded. Preprint and published
+records of the same paper are merged, keeping the published version. Papers
+the automatic score gets wrong are corrected by hand and recorded in
+`data/manual_flags.csv`.
+
+## How it stays current
+
+`scripts/update_metrics.py` reruns this search once a month
+(`.github/workflows/update.yml`, 1st of the month) and commits the refreshed
+`data/metrics.json`, which `index.html` reads at load time. No server, no
+database, no build step.
+
+## Files
 
 ```
-index.html          the page (fetches data/metrics.json at load time)
-assets/style.css     styling, matched to dawn-cph.github.io/dja's fonts and colors
-assets/chart.js      draws the bar chart, fills in the numbers, sets the ADS link
-data/metrics.json    the numbers the page reads — rebuilt monthly, committed by the Action
-data/manual_flags.csv  manual clean/contaminant corrections (see below)
-scripts/update_metrics.py  rebuilds data/metrics.json from ADS
-.github/workflows/update.yml  runs the script on the 1st of every month
+index.html                   the page
+assets/style.css, chart.js   styling and the bar chart, no dependencies
+data/metrics.json            the numbers currently on the page
+data/manual_flags.csv        manually corrected papers (see "Where the numbers come from")
+scripts/update_metrics.py    rebuilds data/metrics.json from ADS
+.github/workflows/update.yml monthly rebuild
 ```
 
-`update_metrics.py` is a trimmed copy of the DJA-side discovery and scoring
-logic in the private working notebook — same query, same scoring rules, same
-duplicate-merging — but it only computes what this page shows (paper counts,
-author counts). It does not run the comparison-sample search or the citation
-bootstrap; those stay in the notebook.
+`assets/style.css` reuses the fonts and colors from
+[dawn-cph.github.io/dja](https://dawn-cph.github.io/dja/) (Roboto Slab, Open
+Sans, the same gold accent), so the page can be folded into that site later
+with little restyling.
 
-## Setting this up on GitHub
+## Maintenance
 
-1. Create the repo (or a subfolder of an existing one — adjust paths below if so) and push this
-   folder's contents.
-2. **Settings → Secrets and variables → Actions → New repository secret**, name it `ADS_TOKEN`,
-   paste your ADS API token (ui.adsabs.harvard.edu/user/settings/token). The workflow reads it
-   from there — it is never written into any file in this repo.
-3. **Settings → Pages** → deploy from the branch this is pushed to (root, or `/docs` if you move
-   these files there). GitHub gives you a `https://<user>.github.io/<repo>/` URL.
-4. **Actions tab** → run the "Update DJA metrics" workflow once by hand
-   (`workflow_dispatch`) to confirm it can write `data/metrics.json` with the
-   `contents: write` permission already set in the workflow file.
-
-## Before you push
-
-- **`dja_auto_discovery.ipynb` still has the real ADS token hardcoded in cell 2.**
-  Nothing in *this* folder contains it — `update_metrics.py` reads `ADS_TOKEN`
-  from the environment — but if you ever push the notebook itself to a public
-  repo, strip the token out first (swap it for an env-var read, same pattern
-  as the script here).
-- The methodology link at the bottom of `index.html` is a `#` placeholder —
-  point it at wherever the notebook ends up living publicly, once it does.
-
-## Keeping manual corrections in sync
-
-`data/manual_flags.csv` is a snapshot of the notebook's `flagged_contaminants.csv`
-(108 papers the automatic score misclassified, corrected by hand) at the time
-this was built. If you flag more papers in the notebook's review workflow
-later, copy the updated file over:
+Setup (the `ADS_TOKEN` repository secret, GitHub Pages) is already done. The
+one recurring task: when a paper is manually reclassified in the notebook's
+own review step, copy the update across so this page picks it up too —
 
 ```
 cp ../ads_dja_papers/flagged_contaminants.csv data/manual_flags.csv
 git add data/manual_flags.csv && git commit -m "Sync manual flags" && git push
 ```
 
-Without this, the monthly rebuild still runs fine — it just falls back to the
-automatic score alone for any *newly* flagged paper until you sync.
-
-## Merging into the main DJA website later
-
-The color and type tokens in `assets/style.css` (`--accent`, `--ink`, `--body`,
-`--border`, `--panel`, and the Roboto Slab / Open Sans pairing) are read
-straight off `dawn-cph.github.io/dja`'s own stylesheet, so dropping this
-content into that Jekyll site later should mostly mean: move `index.html`'s
-`<body>` content into a page template, keep `assets/chart.js` and
-`data/metrics.json`, and let the site's own `main.css` take over instead of
-`assets/style.css`.
+Skipping this does not break anything; a newly flagged paper is just scored
+automatically here until the next sync.
