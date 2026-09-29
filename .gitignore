@@ -8,3 +8,6 @@ __pycache__/
 scripts/review_new_clean.html
 scripts/review_new_contaminants.html
 scripts/flagged_new_*.csv
+
+# local run output from notebook/dja_discovery_example.ipynb (OUTPUT_DIR in its config cell)
+notebook/output/

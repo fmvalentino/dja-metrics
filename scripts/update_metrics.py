@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import time
+import unicodedata
 import urllib.parse
 from collections import Counter
 from datetime import date, datetime, timezone
@@ -42,7 +43,8 @@ SLEEP_SEC    = 0.3
 
 MAIN_Q  = 'full:("Dawn JWST Archive" OR "DJA")'
 HL_Q    = '"Dawn JWST Archive" OR "DJA"'
-FIELDS  = "id,bibcode,title,author,year,aff,citation_count,doctype,identifier,arxiv_class"
+FIELDS  = ("id,bibcode,title,author,year,aff,citation_count,doctype,identifier,arxiv_class,"
+           "orcid_pub,orcid_user,orcid_other")
 DJA_FQ  = [f"year:{YEAR_RANGE}", "collection:astronomy"]
 
 # same word list as the notebook: context that suggests the *archive*, not a person's initials
@@ -214,6 +216,71 @@ def dawn_affiliated(doc):
     return any(DAWN_RE.search(a) for a in (doc.get("aff") or []) if a and a != "-")
 
 
+def _strip_accents(s):
+    return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+
+
+def _blocking_key(name):
+    """
+    Coarse fallback identity for a name with no ORCID anywhere in the dataset: surname +
+    first initial, accent-stripped and lowercased ('de Graaff, A.' and 'De Graaff, Anna'
+    both -> 'de graaff|a'). Can merge two different people who share both, or split one
+    person whose surname is spelled inconsistently across papers -- see resolve_authors.
+    """
+    last, _, rest = name.partition(",")
+    last = _strip_accents(last).strip().lower()
+    m = re.search(r"[a-zA-Z]", _strip_accents(rest))
+    return f"{last}|{m.group(0).lower() if m else ''}"
+
+
+def resolve_authors(docs):
+    """
+    Assigns each (bibcode, position) author slot an identity key, merging occurrences
+    that are very likely the same person:
+
+      1. Same ORCID (orcid_pub, else orcid_user, else orcid_other) -> same identity.
+         High confidence -- this is what ORCID is for.
+      2. No ORCID on this occurrence, but the exact same name string has a known ORCID
+         somewhere else in the dataset -> linked to that identity. Still high confidence:
+         it takes an exact full "Last, First Middle" match, not just a surname.
+      3. Never seen with an ORCID anywhere -> grouped by _blocking_key (surname + first
+         initial). A heuristic, and the only tier that can mis-merge or mis-split.
+
+    Returns (identities, orcid_coverage): identities is {(bibcode, position): key};
+    orcid_coverage is the fraction of author-occurrences carrying some ORCID.
+    """
+    def orcid_of(doc, i):
+        for field in ("orcid_pub", "orcid_user", "orcid_other"):
+            vals = doc.get(field) or []
+            if i < len(vals) and vals[i] and vals[i] != "-":
+                return vals[i]
+        return None
+
+    occurrences = []   # (bibcode, position, name, orcid)
+    name_to_orcid = {}
+    for doc in docs:
+        for i, name in enumerate(doc.get("author") or []):
+            orcid = orcid_of(doc, i)
+            occurrences.append((doc["bibcode"], i, name, orcid))
+            if orcid:
+                name_to_orcid.setdefault(name, orcid)
+
+    identities = {}
+    n_with_orcid = 0
+    for bib, i, name, orcid in occurrences:
+        if orcid:
+            key = ("orcid", orcid)
+            n_with_orcid += 1
+        elif name in name_to_orcid:
+            key = ("orcid", name_to_orcid[name])
+        else:
+            key = ("name", _blocking_key(name))
+        identities[(bib, i)] = key
+
+    coverage = n_with_orcid / len(occurrences) if occurrences else 0.0
+    return identities, coverage
+
+
 def discover():
     """
     Run the live ADS search + scoring pipeline. Returns (clean, contaminants, scored):
@@ -261,22 +328,20 @@ def main():
 
     by_year = Counter()
     citations_by_year = Counter()
-    authors_seen, first_authors = set(), set()
-    n_auth_total, dawn_count, with_year = 0, 0, 0
+    dawn_count = 0
     for doc in clean:
         y = doc.get("year")
         if y and str(y).isdigit():
             by_year[int(y)] += 1
             citations_by_year[int(y)] += doc.get("citation_count", 0) or 0
-            with_year += 1
-        for a in (doc.get("author") or []):
-            authors_seen.add(a.strip())
-        fa = first_author(doc)
-        if fa:
-            first_authors.add(fa)
-        n_auth_total += n_authors(doc)
         if dawn_affiliated(doc):
             dawn_count += 1
+
+    # Merge author name variants ("Smith, J." / "Smith, John") into one identity where
+    # possible -- see resolve_authors's docstring for exactly how and its limits.
+    identities, orcid_coverage = resolve_authors(clean)
+    unique_people = len(set(identities.values()))
+    unique_first_authors = len({identities[(d["bibcode"], 0)] for d in clean if d.get("author")})
 
     median_authors = sorted(n_authors(d) for d in clean)
     median_authors = median_authors[len(median_authors) // 2] if median_authors else 0
@@ -304,14 +369,17 @@ def main():
         ],
         "citations_by_year": citations_cumulative,
         "community": {
-            "unique_author_names": len(authors_seen),
-            "unique_first_authors": len(first_authors),
+            "unique_authors": unique_people,
+            "orcid_coverage_pct": round(100 * orcid_coverage, 1),
+            "unique_first_authors": unique_first_authors,
             "median_authors_per_paper": median_authors,
             "external_adoption_pct": external_pct,
         },
         "notes": {
-            "unique_author_names": "Name-string match only (e.g. 'Smith, J.' vs 'Smith, John' count "
-                                    "separately) -- a ceiling, not an exact headcount.",
+            "unique_authors": "Merged via ORCID where ADS has one (see orcid_coverage_pct); name "
+                               "variants without an ORCID ('Smith, J.' vs 'Smith, John') are merged "
+                               "by matching surname + first initial, which can occasionally over- or "
+                               "under-merge for two people who share both.",
             "external_adoption_pct": "Share of papers with no author affiliation string mentioning "
                                       "the Cosmic Dawn Center. An upper bound: an affiliate whose "
                                       "entry omits the center's name would be miscounted as external.",

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T09:33:53+00:00",
+  "generated_at": "2026-09-29T12:04:05+00:00",
   "total_papers": 433,
   "by_year": [
     {
@@ -46,13 +46,14 @@
     }
   ],
   "community": {
-    "unique_author_names": 2481,
-    "unique_first_authors": 328,
+    "unique_authors": 1992,
+    "orcid_coverage_pct": 54.5,
+    "unique_first_authors": 314,
     "median_authors_per_paper": 16,
     "external_adoption_pct": 70.9
   },
   "notes": {
-    "unique_author_names": "Name-string match only (e.g. 'Smith, J.' vs 'Smith, John' count separately) -- a ceiling, not an exact headcount.",
+    "unique_authors": "Merged via ORCID where ADS has one (see orcid_coverage_pct); name variants without an ORCID ('Smith, J.' vs 'Smith, John') are merged by matching surname + first initial, which can occasionally over- or under-merge for two people who share both.",
     "external_adoption_pct": "Share of papers with no author affiliation string mentioning the Cosmic Dawn Center. An upper bound: an affiliate whose entry omits the center's name would be miscounted as external."
   },
   "ads_search_url": "https://ui.adsabs.harvard.edu/search/q=full%3A%28%22Dawn%20JWST%20Archive%22%20OR%20%22DJA%22%29%20year%3A%5B2023%20TO%20%2A%5D%20collection%3Aastronomy%20NOT%20bibcode%3A%222023A%26A...669A.109L%22%20NOT%20bibcode%3A%222023A%26A...673A...4B%22%20NOT%20bibcode%3A%222023A%26A...675A..39P%22%20NOT%20bibcode%3A%222023AJ....165...85W%22%20NOT%20bibcode%3A%222023AcA....73..159M%22%20NOT%20bibcode%3A%222023MNRAS.518.4845J%22%20NOT%20bibcode%3A%222023MNRAS.520.3649H%22%20NOT%20bibcode%3A%222023MNRAS.523.1163F%22%20NOT%20bibcode%3A%222023MNRAS.524.1113S%22%20NOT%20bibcode%3A%222023MNRAS.524.3877H%22%20NOT%20bibcode%3A%222023MNRAS.524.5804A%22%20NOT%20bibcode%3A%222023MNRAS.526..548O%22%20NOT%20bibcode%3A%222024A%26A...685A..56S%22%20NOT%20bibcode%3A%222024ApJ...976..181H%22%20NOT%20bibcode%3A%222024MNRAS.527.2413P%22%20NOT%20bibcode%3A%222024MNRAS.527.4018H%22%20NOT%20bibcode%3A%222024MNRAS.527.8305K%22%20NOT%20bibcode%3A%222024MNRAS.528.6538P%22%20NOT%20bibcode%3A%222024MNRAS.531.4085F%22%20NOT%20bibcode%3A%222024MNRAS.533.2823H%22%20NOT%20bibcode%3A%222024arXiv240406958S%22%20NOT%20bibcode%3A%222024arXiv240609957B%22%20NOT%20bibcode%3A%222024arXiv240815307D%22%20NOT%20bibcode%3A%222025A%26A...693A.144G%22%20NOT%20bibcode%3A%222025ApJ...983...97C%22%20NOT%20bibcode%3A%222025ExA....59...26R%22%20NOT%20bibcode%3A%222025MNRAS.538.1301P%22%20NOT%20bibcode%3A%222025MNRAS.543.4312K%22%20NOT%20bibcode%3A%222025arXiv251014083A%22%20NOT%20bibcode%3A%222025arXiv251213773G%22%20NOT%20bibcode%3A%222026A%26A...705A.210A%22%20NOT%20bibcode%3A%222026Icar..45617134Y%22%20NOT%20bibcode%3A%222026JCAP...09..055A%22%20NOT%20bibcode%3A%222026JGRE..13109146S%22%20NOT%20bibcode%3A%222026MNRAS.546ag115J%22%20NOT%20bibcode%3A%222026MNRAS.546ag232K%22%20NOT%20bibcode%3A%222026MNRAS.546ag258P%22%20NOT%20bibcode%3A%222026MNRAS.550g1216P%22%20NOT%20bibcode%3A%222026MNRAS.tmp.1617L%22%20NOT%20bibcode%3A%222026arXiv260404042Z%22%20NOT%20bibcode%3A%222026arXiv260630691K%22%20NOT%20bibcode%3A%222026arXiv260818962T%22%20NOT%20bibcode%3A%222026arXiv260902574K%22%20NOT%20bibcode%3A%222026arXiv260924567M%22%20NOT%20bibcode%3A%222026enap....1..520G%22&sort=date%20desc",

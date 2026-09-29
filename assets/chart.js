@@ -90,7 +90,9 @@ async function main() {
   drawChart("citations-chart", data.citations_by_year, "cumulative", true);
 
   const c = data.community;
-  document.getElementById("stat-authors").textContent = fmt(c.unique_author_names);
+  document.getElementById("stat-authors").textContent = fmt(c.unique_authors);
+  document.getElementById("stat-authors-note").textContent =
+    `Matched by ORCID where available (${c.orcid_coverage_pct}% of author entries).`;
   document.getElementById("stat-first-authors").textContent = fmt(c.unique_first_authors);
   document.getElementById("stat-team-size").textContent = c.median_authors_per_paper;
   document.getElementById("stat-external").textContent = c.external_adoption_pct + "%";

@@ -15,11 +15,13 @@ updates of ADS/NASA
 
 **Community reach.** Four numbers:
 
-- *Unique author names* across all confirmed papers — this is a name-string
-  match, and thus a ceiling rather than an exact headcount: the same person spelled two
-  ways in ADS counts twice.
+- *Unique authors* across all confirmed papers — matched by ORCID where ADS
+  has one for that author (currently ~55% of author entries); the rest are
+  merged by surname + first initial, which occasionally over- or under-merges
+  when two people share both. See `resolve_authors()` in `update_metrics.py`.
 - *Unique first authors* — how many different people have led a DJA
-  paper, as opposed to one group publishing repeatedly.
+  paper, as opposed to one group publishing repeatedly. Same author-matching
+  as above.
 - *Share with no Cosmic Dawn Center co-author* — papers written
   entirely outside the group that builds and runs the archive. This is an
   upper bound on external use: an author from the Center whose ADS

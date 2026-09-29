@@ -9,6 +9,7 @@ functions and looks at what comes back.
 import html
 import re
 import time
+import unicodedata
 
 import requests
 
@@ -206,6 +207,71 @@ def first_author(doc):
 def dawn_affiliated(doc):
     """True if any author's ADS affiliation string mentions the Cosmic Dawn Center."""
     return any(DAWN_RE.search(a) for a in (doc.get("aff") or []) if a and a != "-")
+
+
+def _strip_accents(s):
+    return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+
+
+def _blocking_key(name):
+    """
+    Coarse fallback identity for a name with no ORCID anywhere in the dataset: surname +
+    first initial, accent-stripped and lowercased ('de Graaff, A.' and 'De Graaff, Anna'
+    both -> 'de graaff|a'). Can merge two different people who share both, or split one
+    person whose surname is spelled inconsistently across papers -- see resolve_authors.
+    """
+    last, _, rest = name.partition(",")
+    last = _strip_accents(last).strip().lower()
+    m = re.search(r"[a-zA-Z]", _strip_accents(rest))
+    return f"{last}|{m.group(0).lower() if m else ''}"
+
+
+def resolve_authors(docs):
+    """
+    Assigns each (bibcode, position) author slot an identity key, merging occurrences
+    that are very likely the same person:
+
+      1. Same ORCID (orcid_pub, else orcid_user, else orcid_other) -> same identity.
+         High confidence -- this is what ORCID is for.
+      2. No ORCID on this occurrence, but the exact same name string has a known ORCID
+         somewhere else in the dataset -> linked to that identity. Still high confidence:
+         it takes an exact full "Last, First Middle" match, not just a surname.
+      3. Never seen with an ORCID anywhere -> grouped by _blocking_key (surname + first
+         initial). A heuristic, and the only tier that can mis-merge or mis-split.
+
+    Returns (identities, orcid_coverage): identities is {(bibcode, position): key};
+    orcid_coverage is the fraction of author-occurrences carrying some ORCID.
+    """
+    def orcid_of(doc, i):
+        for field in ("orcid_pub", "orcid_user", "orcid_other"):
+            vals = doc.get(field) or []
+            if i < len(vals) and vals[i] and vals[i] != "-":
+                return vals[i]
+        return None
+
+    occurrences = []
+    name_to_orcid = {}
+    for doc in docs:
+        for i, name in enumerate(doc.get("author") or []):
+            orcid = orcid_of(doc, i)
+            occurrences.append((doc["bibcode"], i, name, orcid))
+            if orcid:
+                name_to_orcid.setdefault(name, orcid)
+
+    identities = {}
+    n_with_orcid = 0
+    for bib, i, name, orcid in occurrences:
+        if orcid:
+            key = ("orcid", orcid)
+            n_with_orcid += 1
+        elif name in name_to_orcid:
+            key = ("orcid", name_to_orcid[name])
+        else:
+            key = ("name", _blocking_key(name))
+        identities[(bib, i)] = key
+
+    coverage = n_with_orcid / len(occurrences) if occurrences else 0.0
+    return identities, coverage
 
 
 def results_to_df(results, ads_abs_fmt, galaxy_classes):
