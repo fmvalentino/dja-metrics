@@ -141,7 +141,12 @@ def dedupe(docs, hl):
 
 
 def score_paper(bibcode, hl_map):
-    """Score 1-9 from ADS full-text highlight snippets. Identical rule set to the notebook."""
+    """
+    Score 1-9 from ADS full-text highlight snippets. Identical rule set to the notebook.
+    Returns {"score", "reason", "snippets"} -- not just the number -- so a borderline or
+    surprising score can actually be read and checked (see sync_ads_library.py's review
+    tables), not just trusted.
+    """
     hl = hl_map.get(bibcode, {})
     snippets = []
     for field, texts in hl.items():
@@ -149,27 +154,41 @@ def score_paper(bibcode, hl_map):
             for t in texts:
                 snippets.append({"field": field, "text": strip_em(t)})
     if not snippets:
-        return 1
+        return {"score": 1, "reason": "No full-text hit", "snippets": []}
+
     max_score = 0
     for s in snippets:
         has_full = bool(FULL_RE.search(s["text"]))
         ctx = len(set(m.lower() for m in CTX_RE.findall(s["text"])))
         no_init = INITIALS_RE.sub(" ", s["text"])
         has_dja = bool(DJA_RE.search(no_init))
+        s["initials"] = bool(DJA_RE.search(s["text"])) and not has_dja
         if (has_dja and not has_full and s["field"] == "ack" and ctx == 0
                 and re.search(r"acknowledg|thank|support|fellowship|grant|fund", s["text"], re.I)):
             has_dja = False
-        hit = has_full or has_dja
-        if has_full:                          sc = 9
-        elif has_dja and ctx >= 2:             sc = 8
-        elif has_dja and ctx == 1:             sc = 6
-        elif has_dja and s["field"] == "body": sc = 5
-        elif has_dja:                          sc = 4
-        else:                                  sc = 3
-        if hit and s["field"] == "body" and sc < 9:
+            s["initials"] = True
+        s["hit"] = has_full or has_dja
+        if has_full:                            sc = 9
+        elif has_dja and ctx >= 2:               sc = 8
+        elif has_dja and ctx == 1:               sc = 6
+        elif has_dja and s["field"] == "body":   sc = 5
+        elif has_dja:                            sc = 4
+        else:                                    sc = 3
+        if s["hit"] and s["field"] == "body" and sc < 9:
             sc = min(sc + 1, 9)
+        s["score"] = sc
         max_score = max(max_score, sc)
-    return max_score
+
+    snippets.sort(key=lambda x: x["score"], reverse=True)
+    only_initials = max_score < 4 and any(x.get("initials") for x in snippets)
+    reason = (
+        "DJA is author initials (acknowledgements)" if only_initials else
+        "Strong archive context"        if max_score >= 7 else
+        "DJA present, moderate context" if max_score >= 5 else
+        "DJA found, context ambiguous"  if max_score >= 4 else
+        "Weak / indirect reference"
+    )
+    return {"score": max_score, "reason": reason, "snippets": snippets}
 
 
 def load_manual_flags():
@@ -197,10 +216,13 @@ def dawn_affiliated(doc):
 
 def discover():
     """
-    Run the live ADS search + scoring pipeline. Returns (clean, contaminants),
-    each a list of ADS doc dicts. Shared by this script's monthly metrics refresh
-    and sync_ads_library.py's slower, human-reviewed library sync, so the two
-    never drift apart on what counts as "confirmed."
+    Run the live ADS search + scoring pipeline. Returns (clean, contaminants, scored):
+    clean/contaminants are lists of ADS doc dicts; scored is {bibcode: {"score",
+    "reason", "snippets"}} for every candidate, clean or not, straight from score_paper
+    -- i.e. the automatic verdict, before any manual_flags.csv override is applied.
+    Shared by this script's monthly metrics refresh and sync_ads_library.py's slower,
+    human-reviewed library sync, so the two never drift apart on what counts as
+    "confirmed."
     """
     if not ADS_TOKEN:
         sys.exit("ADS_TOKEN environment variable is not set -- see README.md")
@@ -221,20 +243,21 @@ def discover():
     print(f"{len(docs)} candidates after merging preprint/published duplicates")
 
     flags = load_manual_flags()
-    clean, contaminants = [], []
+    clean, contaminants, scored = [], [], {}
     for doc in docs:
         bib = doc["bibcode"]
-        score = score_paper(bib, hl_map)
-        auto = "clean" if score >= MIN_SCORE else "contaminants"
+        sc = score_paper(bib, hl_map)
+        scored[bib] = sc
+        auto = "clean" if sc["score"] >= MIN_SCORE else "contaminants"
         group = flags.get(bib, auto)
         (clean if group == "clean" else contaminants).append(doc)
     print(f"{len(clean)} confirmed DJA papers "
           f"({sum(1 for v in flags.values() if v == 'clean')} manually corrected in)")
-    return clean, contaminants
+    return clean, contaminants, scored
 
 
 def main():
-    clean, contaminants = discover()
+    clean, contaminants, _scored = discover()
 
     by_year = Counter()
     citations_by_year = Counter()

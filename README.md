@@ -59,14 +59,26 @@ Two different cadences, on purpose:
   manual review; historically that's been rare (45 of 478 candidates ever,
   ~9%, mostly caught the first time).
 - **The curated ADS Library** (the "Explore it yourself" button) only updates
-  when a person runs `scripts/sync_ads_library.py` and reviews the diff —
-  roughly every 6 months. It never changes automatically, so it can never show
-  an unreviewed paper.
+  when a person runs `scripts/sync_ads_library.py` — roughly every 6 months.
+  It never changes automatically, and genuinely new candidates (not just a
+  terse add/remove line) get a real look first:
 
 ```
-ADS_TOKEN=... python scripts/sync_ads_library.py            # dry run: prints the diff only
-ADS_TOKEN=... python scripts/sync_ads_library.py --apply    # applies it, after you've read the diff
+ADS_TOKEN=... python scripts/sync_ads_library.py            # dry run
+ADS_TOKEN=... python scripts/sync_ads_library.py --apply    # applies it, after you've reviewed
 ```
+
+A dry run compares today's candidates against `data/known_candidates.csv` —
+every bibcode already seen in a *previous* sync. Anything not in there is
+genuinely new, and gets written to two checkbox HTML tables
+(`scripts/review_new_clean.html`, `scripts/review_new_contaminants.html`,
+same pattern as the notebook's own review tables — score, reason, the actual
+matched snippet, and a "wrong?" tickbox). Tick anything misclassified,
+download the flagged CSV, merge it into `data/manual_flags.csv`, re-run.
+Papers already reviewed in an earlier sync never show up again — only what's
+new since last time. `--apply` also marks today's full candidate list as
+"known" in `data/known_candidates.csv`, so that's the actual commit point;
+a dry run is always safe to re-run while you're still reviewing.
 
 ## Reproduce it yourself
 
@@ -86,8 +98,10 @@ assets/style.css, chart.js   styling and the two bar charts, no dependencies
 data/metrics.json            the numbers currently on the page
 data/manual_flags.csv        manually corrected papers (see "Where the numbers come from")
 data/ads_library_id.txt      id of the curated ADS Library the "Explore" button links to
+data/known_candidates.csv    every bibcode reviewed in a past sync -- what makes "new" mean new
 scripts/update_metrics.py    rebuilds data/metrics.json from ADS -- monthly, automatic
-scripts/sync_ads_library.py  syncs the curated library -- manual, ~every 6 months
+scripts/sync_ads_library.py  syncs the curated library -- manual, ~every 6 months, new
+                              candidates get a checkbox review first (see review_html.py)
 .github/workflows/update.yml monthly rebuild of data/metrics.json only
 notebook/                    a runnable example that reproduces the numbers above
 ```

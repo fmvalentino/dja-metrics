@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# per-run review output from scripts/sync_ads_library.py -- regenerated each time,
+# not meant to be published; download a flagged_*.csv from these and merge it into
+# data/manual_flags.csv instead
+scripts/review_new_clean.html
+scripts/review_new_contaminants.html
+scripts/flagged_new_*.csv
