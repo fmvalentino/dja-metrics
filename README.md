@@ -17,8 +17,12 @@ updates of ADS/NASA
 
 - *Unique authors* across all confirmed papers — matched by ORCID where ADS
   has one for that author (currently ~55% of author entries); the rest are
-  merged by surname + first initial, which occasionally over- or under-merges
-  when two people share both. See `resolve_authors()` in `update_metrics.py`.
+  merged by surname plus every given/middle-name token that's spelled out on
+  both records, not just the first letter (an earlier, first-initial-only
+  version of this wrongly merged e.g. three different people all named
+  "Zhang, J...⁠"). Can still occasionally mis-merge two people who share a
+  surname and only ever appear with bare initials. See `resolve_authors()`
+  in `update_metrics.py`.
 - *Unique first authors* — how many different people have led a DJA
   paper, as opposed to one group publishing repeatedly. Same author-matching
   as above.

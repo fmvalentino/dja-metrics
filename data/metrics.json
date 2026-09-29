@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T12:04:05+00:00",
+  "generated_at": "2026-09-29T12:45:01+00:00",
   "total_papers": 433,
   "by_year": [
     {
@@ -46,7 +46,7 @@
     }
   ],
   "community": {
-    "unique_authors": 1992,
+    "unique_authors": 2003,
     "orcid_coverage_pct": 54.5,
     "unique_first_authors": 314,
     "median_authors_per_paper": 16,
