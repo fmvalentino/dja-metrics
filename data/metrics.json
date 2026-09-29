@@ -30,7 +30,7 @@
     "external_adoption_pct": 70.9
   },
   "notes": {
-    "unique_author_names": "Name-string match only (e.g. 'Smith, J.' vs 'Smith, John' count separately) -- a floor, not an exact headcount.",
+    "unique_author_names": "Name-string match only (e.g. 'Smith, J.' vs 'Smith, John' count separately) -- a ceiling, not an exact headcount.",
     "external_adoption_pct": "Share of papers with no author affiliation string mentioning the Cosmic Dawn Center. An upper bound: an affiliate whose entry omits the center's name would be miscounted as external."
   },
   "ads_search_url": "https://ui.adsabs.harvard.edu/search/q=full%3A%28%22Dawn%20JWST%20Archive%22%20OR%20%22DJA%22%29%20year%3A%5B2023%20TO%20%2A%5D%20collection%3Aastronomy&sort=date%20desc"

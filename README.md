@@ -45,6 +45,16 @@ the automatic score gets wrong are corrected by hand and recorded in
 `data/metrics.json`, which `index.html` reads at load time. No server, no
 database, no build step.
 
+## Reproduce it yourself
+
+`notebook/dja_discovery_example.ipynb` runs the same search and scoring end to
+end and reproduces every number on this page, cell by cell, with the query,
+the scoring rule, and each intermediate table visible as you go. It needs a
+free ADS API token (`export ADS_TOKEN=...`, see the notebook's first cell) and
+nothing else private. The wider citation-impact analysis (DJA papers against a
+matched sample of non-DJA JWST papers, with a bootstrap confidence interval)
+is a separate, larger study and is not part of this page or this notebook.
+
 ## Files
 
 ```
@@ -54,4 +64,5 @@ data/metrics.json            the numbers currently on the page
 data/manual_flags.csv        manually corrected papers (see "Where the numbers come from")
 scripts/update_metrics.py    rebuilds data/metrics.json from ADS
 .github/workflows/update.yml monthly rebuild
+notebook/                    a runnable example that reproduces the numbers above
 ```

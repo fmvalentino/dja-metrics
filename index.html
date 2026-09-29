@@ -44,7 +44,7 @@
       <div class="stat">
         <dt id="stat-authors">&hellip;</dt>
         <dd>unique author names across all DJA papers
-          <span class="stat-note">Name-string match &mdash; a floor, not an exact headcount.</span>
+          <span class="stat-note">Name-string match &mdash; a ceiling, not an exact headcount.</span>
         </dd>
       </div>
       <div class="stat">
@@ -84,10 +84,9 @@
     <p class="section-note">Full-text search on NASA ADS for &ldquo;Dawn JWST Archive&rdquo; or the
       standalone acronym &ldquo;DJA&rdquo;, published or on arXiv since 2023. Each hit is scored
       from its highlighted context to separate genuine archive use from a person's initials or an
-      unrelated match, then reviewed by hand where the automatic score is ambiguous. Full pipeline
-      and the wider citation-impact analysis this page is drawn from:
-      <a href="#" target="_blank" rel="noopener">dja_auto_discovery.ipynb</a>
-      <!-- TODO: point this at the notebook's repo once it's pushed -- see README "Before you push". -->
+      unrelated match, then reviewed by hand where the automatic score is ambiguous. Runnable
+      example, reproducing the numbers above end to end:
+      <a href="https://github.com/fmvalentino/dja-metrics/blob/main/notebook/dja_discovery_example.ipynb" target="_blank" rel="noopener">dja_discovery_example.ipynb</a>.
     </p>
     <p id="load-error" class="section-note" hidden style="color:#b23b3b;">
       Could not load the current numbers (data/metrics.json). Try again in a moment.

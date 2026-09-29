@@ -262,7 +262,7 @@ def main():
         },
         "notes": {
             "unique_author_names": "Name-string match only (e.g. 'Smith, J.' vs 'Smith, John' count "
-                                    "separately) -- a floor, not an exact headcount.",
+                                    "separately) -- a ceiling, not an exact headcount.",
             "external_adoption_pct": "Share of papers with no author affiliation string mentioning "
                                       "the Cosmic Dawn Center. An upper bound: an affiliate whose "
                                       "entry omits the center's name would be miscounted as external.",
