@@ -80,6 +80,7 @@ async function main() {
     data = await res.json();
   } catch (err) {
     document.getElementById("total-papers").textContent = "—";
+    document.getElementById("papers-as-of").textContent = "—";
     document.getElementById("load-error").hidden = false;
     console.error("Could not load data/metrics.json", err);
     return;
@@ -98,9 +99,11 @@ async function main() {
   document.getElementById("stat-external").textContent = c.external_adoption_pct + "%";
 
   const genDate = new Date(data.generated_at);
-  document.getElementById("last-updated").textContent = genDate.toLocaleDateString("en-US", {
+  const genDateFmt = genDate.toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
+  document.getElementById("last-updated").textContent = genDateFmt;
+  document.getElementById("papers-as-of").textContent = genDateFmt;
 
   document.getElementById("ads-search-link").href = data.ads_search_url;
 
