@@ -214,24 +214,25 @@ def main():
     print(f"{len(docs)} candidates after merging preprint/published duplicates")
 
     flags = load_manual_flags()
-    clean = []
+    clean, contaminants = [], []
     for doc in docs:
         bib = doc["bibcode"]
         score = score_paper(bib, hl_map)
         auto = "clean" if score >= MIN_SCORE else "contaminants"
         group = flags.get(bib, auto)
-        if group == "clean":
-            clean.append(doc)
+        (clean if group == "clean" else contaminants).append(doc)
     print(f"{len(clean)} confirmed DJA papers "
           f"({sum(1 for v in flags.values() if v == 'clean')} manually corrected in)")
 
     by_year = Counter()
+    citations_by_year = Counter()
     authors_seen, first_authors = set(), set()
     n_auth_total, dawn_count, with_year = 0, 0, 0
     for doc in clean:
         y = doc.get("year")
         if y and str(y).isdigit():
             by_year[int(y)] += 1
+            citations_by_year[int(y)] += doc.get("citation_count", 0) or 0
             with_year += 1
         for a in (doc.get("author") or []):
             authors_seen.add(a.strip())
@@ -247,6 +248,18 @@ def main():
     external_pct = round(100 * (1 - dawn_count / len(clean)), 1) if clean else 0.0
 
     years_sorted = sorted(by_year)
+    cum = 0
+    citations_cumulative = []
+    for y in years_sorted:
+        cum += citations_by_year[y]
+        citations_cumulative.append({"year": y, "cumulative": cum, "partial": y == CURRENT_YEAR})
+
+    # Exclude papers already identified as false positives from the live search link below --
+    # otherwise every rejected candidate reappears each time someone clicks it (see README).
+    contaminant_bibcodes = sorted(d["bibcode"] for d in contaminants)
+    exclude = " ".join(f'NOT bibcode:"{b}"' for b in contaminant_bibcodes)
+    search_q = f'full:("Dawn JWST Archive" OR "DJA") year:[2023 TO *] collection:astronomy {exclude}'.strip()
+
     metrics = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "total_papers": len(clean),
@@ -254,6 +267,7 @@ def main():
             {"year": y, "count": by_year[y], "partial": y == CURRENT_YEAR}
             for y in years_sorted
         ],
+        "citations_by_year": citations_cumulative,
         "community": {
             "unique_author_names": len(authors_seen),
             "unique_first_authors": len(first_authors),
@@ -267,9 +281,8 @@ def main():
                                       "the Cosmic Dawn Center. An upper bound: an affiliate whose "
                                       "entry omits the center's name would be miscounted as external.",
         },
-        "ads_search_url": "https://ui.adsabs.harvard.edu/search/q=" + urllib.parse.quote(
-            'full:("Dawn JWST Archive" OR "DJA") year:[2023 TO *] collection:astronomy'
-        ) + "&sort=date%20desc",
+        "ads_search_url": "https://ui.adsabs.harvard.edu/search/q="
+            + urllib.parse.quote(search_q) + "&sort=date%20desc",
     }
 
     DATA_JSON.parent.mkdir(parents=True, exist_ok=True)

@@ -85,15 +85,26 @@ section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size:
   color: var(--body);
   margin-top: 0.3em;
 }
-.hero .chart-block { flex: 1 1 22em; min-width: 22em; }
+.hero .chart-block { flex: 1 1 34em; min-width: 22em; }
 
-/* ---------------------------------------------------------------- growth chart (SVG, drawn by chart.js) */
-#growth-chart { width: 100%; height: auto; overflow: visible; font-family: "Open Sans", sans-serif; }
-#growth-chart .bar { fill: var(--accent); }
-#growth-chart .bar.partial { fill: #e3c583; }
-#growth-chart .bar-label { fill: var(--ink); font-weight: 600; font-size: 13px; }
-#growth-chart .axis-label { fill: var(--body); font-size: 12px; }
-#growth-chart .grid-line { stroke: var(--border); stroke-width: 1; }
+/* ---------------------------------------------------------------- growth + citations charts (SVG, drawn by chart.js) */
+.chart-row { display: flex; flex-wrap: wrap; gap: 2em; }
+.chart-col { flex: 1 1 15em; min-width: 15em; }
+.chart-caption {
+  font-family: "Roboto Slab", serif;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: var(--body);
+  margin-bottom: 0.5em;
+}
+#growth-chart, #citations-chart {
+  width: 100%; height: auto; overflow: visible; font-family: "Open Sans", sans-serif;
+}
+#growth-chart .bar, #citations-chart .bar { fill: var(--accent); }
+#growth-chart .bar.partial, #citations-chart .bar.partial { fill: #e3c583; }
+#growth-chart .bar-label, #citations-chart .bar-label { fill: var(--ink); font-weight: 600; font-size: 13px; }
+#growth-chart .axis-label, #citations-chart .axis-label { fill: var(--body); font-size: 12px; }
+#growth-chart .grid-line, #citations-chart .grid-line { stroke: var(--border); stroke-width: 1; }
 
 /* ---------------------------------------------------------------- stat grid */
 .stats {

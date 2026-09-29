@@ -14,21 +14,25 @@ function fmt(n) {
   return n.toLocaleString("en-US");
 }
 
-function drawChart(byYear) {
-  const svg = document.getElementById("growth-chart");
+// svgId: target <svg>. rows: [{year, partial, ...}]. valueKey: which field to plot.
+// shortFmt: true rounds large values (citations) to a compact label so bars stay readable.
+function drawChart(svgId, rows, valueKey, shortFmt) {
+  const svg = document.getElementById(svgId);
   svg.innerHTML = "";
 
-  const W = 640, H = 290;
+  const W = 400, H = 290;
   const padL = 8, padR = 8, padTop = 34, padBottom = 56;
   const plotW = W - padL - padR;
   const plotH = H - padTop - padBottom;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-  const max = Math.max(...byYear.map(d => d.count));
-  const n = byYear.length;
+  const max = Math.max(...rows.map(d => d[valueKey]));
+  const n = rows.length;
   const gap = 0.35;                    // gap as a fraction of bar width
   const slot = plotW / n;
   const barW = slot / (1 + gap);
+
+  const labelFmt = shortFmt ? compactFmt : fmt;
 
   // light horizontal reference lines (no axis, no numbers -- values are labelled directly)
   [0.25, 0.5, 0.75, 1].forEach(f => {
@@ -36,8 +40,9 @@ function drawChart(byYear) {
     el("line", { x1: padL, x2: padL + plotW, y1: y, y2: y, class: "grid-line" }, svg);
   });
 
-  byYear.forEach((d, i) => {
-    const h = max > 0 ? (d.count / max) * plotH : 0;
+  rows.forEach((d, i) => {
+    const v = d[valueKey];
+    const h = max > 0 ? (v / max) * plotH : 0;
     const x = padL + i * slot + (slot - barW) / 2;
     const y = padTop + plotH - h;
 
@@ -49,7 +54,7 @@ function drawChart(byYear) {
 
     el("text", {
       x: x + barW / 2, y: y - 8, class: "bar-label", "text-anchor": "middle",
-    }, svg).textContent = fmt(d.count);
+    }, svg).textContent = labelFmt(v);
 
     const label = d.partial ? `${d.year}†` : `${d.year}`;
     el("text", {
@@ -57,11 +62,15 @@ function drawChart(byYear) {
     }, svg).textContent = label;
   });
 
-  if (byYear.some(d => d.partial)) {
+  if (rows.some(d => d.partial)) {
     el("text", {
       x: padL + plotW, y: padTop + plotH + 42, class: "axis-label", "text-anchor": "end",
     }, svg).textContent = "† year to date";
   }
+}
+
+function compactFmt(n) {
+  return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "k" : fmt(n);
 }
 
 async function main() {
@@ -77,7 +86,8 @@ async function main() {
   }
 
   document.getElementById("total-papers").textContent = fmt(data.total_papers);
-  drawChart(data.by_year);
+  drawChart("growth-chart", data.by_year, "count", false);
+  drawChart("citations-chart", data.citations_by_year, "cumulative", true);
 
   const c = data.community;
   document.getElementById("stat-authors").textContent = fmt(c.unique_author_names);

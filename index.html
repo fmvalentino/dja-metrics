@@ -31,7 +31,16 @@
         <div class="count-label">papers to date</div>
       </div>
       <div class="chart-block">
-        <svg id="growth-chart" role="img" aria-label="Confirmed DJA papers by publication year"></svg>
+        <div class="chart-row">
+          <div class="chart-col">
+            <div class="chart-caption">Papers per year</div>
+            <svg id="growth-chart" role="img" aria-label="Confirmed DJA papers by publication year"></svg>
+          </div>
+          <div class="chart-col">
+            <div class="chart-caption">Cumulative citations to DJA papers</div>
+            <svg id="citations-chart" role="img" aria-label="Cumulative citations to DJA papers by publication year"></svg>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -71,9 +80,10 @@
     <div class="search-panel">
       <div class="copy">
         <strong>See the current search live on ADS.</strong>
-        <p>Opens the same full-text query this page is built from, running right now on NASA ADS
-          &mdash; this includes some false positives (unrelated uses of &ldquo;DJA&rdquo;) that
-          the count above has already screened out.</p>
+        <p>Opens the same full-text query this page is built from, running right now on NASA ADS,
+          with papers already identified as false positives (unrelated uses of &ldquo;DJA&rdquo;)
+          excluded. A paper that showed up too recently to be reviewed yet may still appear here
+          before it does in the count above.</p>
       </div>
       <a id="ads-search-link" class="button primary" href="#" target="_blank" rel="noopener">Search ADS &rarr;</a>
     </div>

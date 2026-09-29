@@ -4,9 +4,14 @@ This page tracks how many papers use the [Dawn JWST Archive (DJA)](https://dawn-
 
 ## What it shows
 
-**Confirmed DJA papers.** A running count with a bar chart of
-new papers by publication year. A paper is counted once its use of DJA data is confirmed by full-text search and, where the automatic score is ambiguous, a manual read of the matched passage. Mentioning JWST or citing the archive in passing is not
-enough to enter the list. Occasional human check includes recently submitted papers appearing on arXiv, but not refereeed yet, to reduce the lag of the automatic updates of ADS/NASA
+**Confirmed DJA papers.** A running count with two bar charts: new papers by
+publication year, and DJA papers' citations, cumulative by publication year.
+A paper is counted once its use of DJA data is confirmed by full-text search
+and, where the automatic score is ambiguous, a manual read of the matched
+passage. Mentioning JWST or citing the archive in passing is not enough to
+enter the list. Occasional human check includes recently submitted papers
+appearing on arXiv, but not refereeed yet, to reduce the lag of the automatic
+updates of ADS/NASA
 
 **Community reach.** Four numbers:
 
@@ -22,9 +27,11 @@ enough to enter the list. Occasional human check includes recently submitted pap
 - *Median authors per paper*.
 
 **A live search link.** One button opens the same full-text query this page
-is built from, running directly on NASA ADS. It will show more papers than
-the count above, because it has not been through the scoring and manual
-review step.
+is built from, running directly on NASA ADS, with every paper already
+identified as a false positive excluded by name (`NOT bibcode:"..."` for each
+one, built fresh into the link on every monthly run). A paper that appeared
+too recently to have been scored and reviewed yet can still show up here
+before it does in the count above — that gap is normally a few weeks at most.
 
 ## Where the numbers come from
 
