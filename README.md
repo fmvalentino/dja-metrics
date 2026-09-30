@@ -100,11 +100,14 @@ is a separate, larger study and is not part of this page or this notebook.
 
 ```
 index.html                   the page
-assets/style.css, chart.js   styling and the two bar charts, no dependencies
+assets/style.css, chart.js   styling and the three bar charts, no dependencies
 data/metrics.json            the numbers currently on the page
 data/manual_flags.csv        manually corrected papers (see "Where the numbers come from")
 data/ads_library_id.txt      id of the curated ADS Library the "Explore" button links to
 data/known_candidates.csv    every bibcode reviewed in a past sync -- what makes "new" mean new
+data/known_clean_bibcodes.csv  last run's confirmed papers -- lets update_metrics.py recover
+                              one that briefly vanishes from ADS full-text search around the
+                              moment it gets journal-published (see resolve_missing in the script)
 scripts/update_metrics.py    rebuilds data/metrics.json from ADS -- monthly, automatic
 scripts/sync_ads_library.py  syncs the curated library -- manual, ~every 6 months, new
                               candidates get a checkbox review first (see review_html.py)

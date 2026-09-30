@@ -31,6 +31,7 @@ ROOT       = Path(__file__).resolve().parent.parent
 DATA_JSON  = ROOT / "data" / "metrics.json"
 FLAGS_CSV  = ROOT / "data" / "manual_flags.csv"   # manual clean/contaminant corrections, see README
 LIBRARY_ID_FILE = ROOT / "data" / "ads_library_id.txt"   # id of the curated ADS Library, see sync_ads_library.py
+KNOWN_CSV  = ROOT / "data" / "known_clean_bibcodes.csv"   # last run's confirmed papers, see resolve_missing
 
 ADS_TOKEN  = os.environ.get("ADS_TOKEN")
 ADS_BASE   = "https://api.adsabs.harvard.edu/v1"
@@ -104,11 +105,21 @@ PHOTOM_KW_RE = re.compile(r"photometr|catalog|mosaic|imaging|nircam|\bmiri\b|gri
 SPEC_KW_RE   = re.compile(r"spectr|nirspec|prism|\bmsa\b|grism|msaexp|emission[- ]line", re.I)
 
 
-def ads_get(path, params):
-    r = requests.get(ADS_BASE + path, headers={"Authorization": f"Bearer {ADS_TOKEN}"},
-                      params=params, timeout=30)
-    r.raise_for_status()
-    return r.json()
+def ads_get(path, params, retries=3):
+    """A single flaky request (timeout, transient 5xx) shouldn't fail the whole monthly
+    run -- there are more ADS calls per run now (citation lookups, the missing-paper
+    safety net) than a bare retry-free version could comfortably absorb."""
+    for attempt in range(retries):
+        try:
+            r = requests.get(ADS_BASE + path, headers={"Authorization": f"Bearer {ADS_TOKEN}"},
+                              params=params, timeout=30)
+            r.raise_for_status()
+            return r.json()
+        except (requests.exceptions.RequestException,) as e:
+            if attempt == retries - 1:
+                raise
+            print(f"  ADS request failed ({e}), retrying ({attempt + 1}/{retries})...")
+            time.sleep(2 * (attempt + 1))
 
 
 def strip_em(text):
@@ -254,6 +265,59 @@ def load_manual_flags():
             for row in csv.DictReader(f):
                 over[row["bibcode"]] = row["to_table"]
     return over
+
+
+def load_known_bibcodes():
+    """{bibcode: title} confirmed clean as of the last run -- see resolve_missing."""
+    known = {}
+    if KNOWN_CSV.exists():
+        with open(KNOWN_CSV, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                known[row["bibcode"]] = row["title"]
+    return known
+
+
+def save_known_bibcodes(bib_to_title):
+    KNOWN_CSV.parent.mkdir(parents=True, exist_ok=True)
+    with open(KNOWN_CSV, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["bibcode", "title"])
+        for b in sorted(bib_to_title):
+            w.writerow([b, bib_to_title[b]])
+
+
+def _norm_title(t):
+    return re.sub(r"\W+", " ", html.unescape(t or "")).strip().lower()
+
+
+def resolve_missing(old_bib, old_title):
+    """
+    A bibcode confirmed clean in a past run but absent from today's fresh full-text
+    search almost always means the paper just got journal-published: ADS retires the old
+    arXiv bibcode and assigns a new one, but the new record's full text isn't reindexed
+    for search right away (can take a few days) -- so for a while the paper is
+    unfindable by the full-text query under either bibcode. ADS *does* populate the new
+    record's title immediately, though (faster than it cross-links the old bibcode into
+    `identifier`, which is not reliable enough yet to use here), so look it up that way
+    instead and return the doc under its current, correct bibcode. Returns None if the
+    title doesn't turn up an exact match -- a real removal, not a publication transition.
+    """
+    if len(old_title.strip()) < 15:
+        return None
+    # strip anything that isn't a word or space (LaTeX math like "$2.7<z<7$" is common in
+    # astro titles and breaks Solr's query parser with a raw 400) -- safe to do since the
+    # match below is on normalised text too, not the query string itself.
+    query_title = re.sub(r"[^\w\s]", " ", html.unescape(old_title)).strip()
+    if not query_title:
+        return None
+    resp = ads_get("/search/query", {"q": f'title:"{query_title}"', "fl": FIELDS, "rows": 5})
+    docs = resp.get("response", {}).get("docs", [])
+    matches = [d for d in docs if _norm_title((d.get("title") or [""])[0]) == _norm_title(old_title)]
+    if not matches:
+        return None
+    # prefer a real article/eprint record over a conference abstract, then by citations
+    matches.sort(key=lambda d: (d.get("doctype") == "abstract", -(d.get("citation_count") or 0)))
+    return matches[0]
 
 
 def n_authors(doc):
@@ -475,8 +539,40 @@ def discover():
         auto = "clean" if sc["score"] >= MIN_SCORE else "contaminants"
         group = flags.get(bib, auto)
         (clean if group == "clean" else contaminants).append(doc)
+
+    # Safety net: a paper confirmed clean last run that isn't anywhere in today's fresh
+    # candidate pool at all (not even in contaminants) is almost always mid arXiv-to-
+    # published transition (see resolve_missing), not a real disappearance -- recover it
+    # under its current bibcode instead of silently dropping it for the few days ADS
+    # takes to reindex the published version's full text. Skipped for anything a manual
+    # flag now explicitly marks as a contaminant -- that's a deliberate removal.
+    known = load_known_bibcodes()
+    found = {d["bibcode"] for d in clean} | {d["bibcode"] for d in contaminants}
+    # the next ledger: every currently-clean bibcode, plus (below) anything still
+    # unresolved that should get another attempt next run
+    ledger = {d["bibcode"]: (d.get("title") or [""])[0] for d in clean}
+    recovered = 0
+    for bib, title in known.items():
+        if bib in found or flags.get(bib) == "contaminants":
+            continue   # already accounted for, or a deliberate manual removal -- drop it
+        doc = resolve_missing(bib, title)
+        if doc and doc["bibcode"] not in found:
+            clean.append(doc)
+            found.add(doc["bibcode"])
+            scored[doc["bibcode"]] = {
+                "score": None, "snippets": [],
+                "reason": f"Carried forward from a past run (was {bib}) -- confirmed before, "
+                          "temporarily missing from ADS full-text search",
+            }
+            ledger[doc["bibcode"]] = (doc.get("title") or [""])[0]
+            recovered += 1
+        else:
+            ledger[bib] = title   # couldn't resolve it yet -- keep it, try again next run
+
+    save_known_bibcodes(ledger)
     print(f"{len(clean)} confirmed DJA papers "
-          f"({sum(1 for v in flags.values() if v == 'clean')} manually corrected in)")
+          f"({sum(1 for v in flags.values() if v == 'clean')} manually corrected in"
+          f"{f', {recovered} carried forward from a past run' if recovered else ''})")
     return clean, contaminants, scored
 
 
