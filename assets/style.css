@@ -12,6 +12,13 @@
   --panel:    #f5f6f7;
   --panel-alt:#eff1f2;
   --surface:  #fff;
+  /* data-products chart: photometry reuses the site's own gold accent (it's the
+     "primary" product); the other three are picked for hue separation from it and
+     from each other, without leaning on red/green (the colorblind-confusable pair). */
+  --cat-photometry:   var(--accent);
+  --cat-spectroscopy: #4d7ea8;
+  --cat-both:         #8a6aa0;
+  --cat-unclassified: #b9bec2;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,6 +33,9 @@
     --panel:    #202426;
     --panel-alt:#262a2c;
     --surface:  #16181a;
+    --cat-spectroscopy: #6fa0c9;
+    --cat-both:         #ab8dc0;
+    --cat-unclassified: #5b6265;
   }
 }
 
@@ -100,7 +110,7 @@ section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size:
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 2.5em;
+  gap: 2em;
 }
 .hero .count-block { flex: 0 0 auto; }
 .hero .count {
@@ -114,12 +124,15 @@ section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size:
   font-size: 0.95em;
   color: var(--body);
   margin-top: 0.3em;
+  white-space: nowrap;
 }
-.hero .chart-block { flex: 1 1 34em; min-width: 22em; }
+/* three chart-cols at their min-width (below) plus two row gaps is what this needs to
+   not wrap -- see .chart-row -- so its own min-width just needs to not clamp tighter. */
+.hero .chart-block { flex: 1 1 34em; min-width: 36em; }
 
-/* ---------------------------------------------------------------- growth + citations charts (SVG, drawn by chart.js) */
-.chart-row { display: flex; flex-wrap: wrap; gap: 2em; }
-.chart-col { flex: 1 1 15em; min-width: 15em; }
+/* ------------------------------------------------- growth + citations + products charts (SVG, drawn by chart.js) */
+.chart-row { display: flex; flex-wrap: wrap; gap: 1.5em; }
+.chart-col { flex: 1 1 12em; min-width: 12em; }
 .chart-caption {
   font-family: "Roboto Slab", serif;
   font-size: 0.85em;
@@ -127,15 +140,48 @@ section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size:
   color: var(--body);
   margin-bottom: 0.5em;
 }
-#growth-chart, #citations-chart {
+#growth-chart, #citations-chart, #products-chart {
   width: 100%; height: auto; overflow: visible; font-family: "Open Sans", sans-serif;
 }
 #growth-chart .bar, #citations-chart .bar { fill: var(--accent); cursor: pointer; }
 #growth-chart .bar.partial, #citations-chart .bar.partial { fill: var(--accent-light); }
 #growth-chart .bar:hover, #citations-chart .bar:hover { fill: var(--accent-hover); }
-#growth-chart .bar-label, #citations-chart .bar-label { fill: var(--ink); font-weight: 600; font-size: 13px; }
-#growth-chart .axis-label, #citations-chart .axis-label { fill: var(--body); font-size: 12px; }
-#growth-chart .grid-line, #citations-chart .grid-line { stroke: var(--border); stroke-width: 1; }
+#growth-chart .bar-label, #citations-chart .bar-label, #products-chart .bar-label {
+  fill: var(--ink); font-weight: 600; font-size: 13px;
+}
+#growth-chart .axis-label, #citations-chart .axis-label, #products-chart .axis-label {
+  fill: var(--body); font-size: 12px;
+}
+#growth-chart .grid-line, #citations-chart .grid-line, #products-chart .grid-line {
+  stroke: var(--border); stroke-width: 1;
+}
+
+/* products-chart segments: one rect per category per year, stacked -- see
+   drawStackedChart in chart.js. Hover brightens a segment and shows its exact count. */
+#products-chart .seg { cursor: pointer; }
+#products-chart .seg-photometry   { fill: var(--cat-photometry); }
+#products-chart .seg-spectroscopy { fill: var(--cat-spectroscopy); }
+#products-chart .seg-both         { fill: var(--cat-both); }
+#products-chart .seg-unclassified { fill: var(--cat-unclassified); }
+#products-chart .seg-photometry:hover { fill: var(--accent-hover); }
+#products-chart .seg-spectroscopy:hover,
+#products-chart .seg-both:hover,
+#products-chart .seg-unclassified:hover { filter: brightness(1.15); }
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5em 1.1em;
+  margin-top: .7em;
+  font-size: 0.76em;
+  color: var(--body);
+}
+.legend-item { display: inline-flex; align-items: center; gap: .4em; white-space: nowrap; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: 0 0 auto; }
+.legend-dot.dot-photometry   { background: var(--cat-photometry); }
+.legend-dot.dot-spectroscopy { background: var(--cat-spectroscopy); }
+.legend-dot.dot-both         { background: var(--cat-both); }
+.legend-dot.dot-unclassified { background: var(--cat-unclassified); }
 
 /* Hover tooltip, positioned by chart.js at the cursor -- shows the exact value even where
    the bar's own label is compact-formatted (e.g. "11k"). */
@@ -159,26 +205,29 @@ section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size:
 .chart-tooltip.show { opacity: 1; }
 
 /* Bars grow up from the baseline, oldest year first; value labels fade in once their bar
-   has landed. Triggered by adding .in to the <svg> (see animateOnView in chart.js). */
-#growth-chart .bar, #citations-chart .bar {
+   has landed. Triggered by adding .in to the <svg> (see animateOnView in chart.js).
+   products-chart's bars are a <g class="bar-group"> of stacked segments -- the group
+   grows as one unit, since an individual segment's final height only makes sense once
+   the stack below it is already full height. */
+#growth-chart .bar, #citations-chart .bar, #products-chart .bar-group {
   transform-box: fill-box;
   transform-origin: bottom;
   transform: scaleY(0);
   transition: transform .5s cubic-bezier(.22, .9, .3, 1);
   transition-delay: calc(var(--i, 0) * 70ms);
 }
-#growth-chart.in .bar, #citations-chart.in .bar { transform: scaleY(1); }
+#growth-chart.in .bar, #citations-chart.in .bar, #products-chart.in .bar-group { transform: scaleY(1); }
 
-#growth-chart .bar-label, #citations-chart .bar-label {
+#growth-chart .bar-label, #citations-chart .bar-label, #products-chart .bar-label {
   opacity: 0;
   transition: opacity .3s ease;
   transition-delay: calc(var(--i, 0) * 70ms + .4s);
 }
-#growth-chart.in .bar-label, #citations-chart.in .bar-label { opacity: 1; }
+#growth-chart.in .bar-label, #citations-chart.in .bar-label, #products-chart.in .bar-label { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  #growth-chart .bar, #citations-chart .bar,
-  #growth-chart .bar-label, #citations-chart .bar-label {
+  #growth-chart .bar, #citations-chart .bar, #products-chart .bar-group,
+  #growth-chart .bar-label, #citations-chart .bar-label, #products-chart .bar-label {
     transition: none;
     transform: none;
     opacity: 1;

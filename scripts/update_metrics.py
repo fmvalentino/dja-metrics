@@ -80,6 +80,29 @@ DAWN_TEAM_ORCIDS = {
     "0000-0003-2680-005X": "Gabriel Brammer",
 }
 
+# Papers describing each DJA data product -- a formal citation to one of these is a
+# high-confidence signal for which product a paper actually built on. See
+# dja_auto_discovery.ipynb section 8 for how these four were chosen and spot-checked
+# before this was ported here.
+KEY_PAPERS = {
+    "photometry":   {"2023ApJ...947...20V": "Valentino+23"},
+    "spectroscopy": {
+        "2025A&A...693A..60H": "Heintz+25",
+        "2025A&A...697A.189D": "de Graaff+25",
+        "2025A&A...699A.358V": "Valentino+25",
+    },
+}
+
+# Product-specific terms, matched against a paper's own DJA-context snippet (not the
+# whole paper -- a bare "NIRCam" mention is noise anywhere else in a JWST paper, but is a
+# real signal right next to the DJA reference itself). Fallback for whoever cites none of
+# the four KEY_PAPERS (e.g. links the DJA website instead of a methods paper) -- lower
+# confidence than a citation match. Excludes ambiguous bare terms like "redshift"
+# (photo-z and spec-z catalogs both use it).
+PHOTOM_KW_RE = re.compile(r"photometr|catalog|mosaic|imaging|nircam|\bmiri\b|grizli|morpholog|"
+                           r"segmentation|psf-matched|multiband", re.I)
+SPEC_KW_RE   = re.compile(r"spectr|nirspec|prism|\bmsa\b|grism|msaexp|emission[- ]line", re.I)
+
 
 def ads_get(path, params):
     r = requests.get(ADS_BASE + path, headers={"Authorization": f"Bearer {ADS_TOKEN}"},
@@ -112,6 +135,26 @@ def paginated_search(q, fq, fl, hl_q, rows=ROWS_PER_PAGE, max_rows=5000):
         if not docs or start >= num_found:
             break
         time.sleep(SLEEP_SEC)
+
+
+def citing_bibcodes(key_bibcode):
+    """All bibcodes citing `key_bibcode`, via ADS's own citation graph (correctly folds
+    in citations to the arXiv preprint of a since-published citing paper, unlike matching
+    against raw `reference` lists by hand)."""
+    out, start = set(), 0
+    while start < 2000:
+        resp = ads_get("/search/query", {
+            "q": f"citations(bibcode:{key_bibcode})", "fl": "bibcode",
+            "rows": 200, "start": start, "sort": "date asc, bibcode asc",
+        })
+        response = resp.get("response", {})
+        docs = response.get("docs", [])
+        out.update(d["bibcode"] for d in docs)
+        start += len(docs)
+        if not docs or start >= response.get("numFound", 0):
+            break
+        time.sleep(SLEEP_SEC)
+    return out
 
 
 def dedupe(docs, hl):
@@ -354,6 +397,47 @@ def resolve_authors(docs):
     return identities, coverage
 
 
+def classify_products(clean, scored):
+    """
+    Classify each confirmed paper by which DJA product(s) it uses -- photometry (imaging
+    catalogs), spectroscopy (NIRSpec), both, or unclassified. Citation-confirmed first
+    (see KEY_PAPERS), falling back to the keyword pass (PHOTOM_KW_RE / SPEC_KW_RE) for
+    whoever cites none of the four -- e.g. links the DJA website instead of a methods
+    paper. Spot-checked in dja_auto_discovery.ipynb section 8 before this was ported
+    here. Returns {bibcode: "photometry" | "spectroscopy" | "both" | "unclassified"}.
+    """
+    dja_bibcodes = {d["bibcode"] for d in clean}
+    cite_photometry, cite_spectroscopy = set(), set()
+    for bib in KEY_PAPERS["photometry"]:
+        cite_photometry |= citing_bibcodes(bib) & dja_bibcodes
+    for bib in KEY_PAPERS["spectroscopy"]:
+        cite_spectroscopy |= citing_bibcodes(bib) & dja_bibcodes
+
+    # keyword fallback, only for whoever cites none of the four key papers
+    neither = dja_bibcodes - cite_photometry - cite_spectroscopy
+    kw_photometry, kw_spectroscopy = set(), set()
+    for bib in neither:
+        text = " ".join(s["text"] for s in scored.get(bib, {}).get("snippets", []) if s.get("hit"))
+        if PHOTOM_KW_RE.search(text):
+            kw_photometry.add(bib)
+        if SPEC_KW_RE.search(text):
+            kw_spectroscopy.add(bib)
+
+    category = {}
+    for bib in dja_bibcodes:
+        p = bib in cite_photometry or bib in kw_photometry
+        s = bib in cite_spectroscopy or bib in kw_spectroscopy
+        category[bib] = ("both" if p and s else
+                          "photometry" if p else
+                          "spectroscopy" if s else
+                          "unclassified")
+    print(f"  data products -- citation-confirmed: {len(cite_photometry)} photometry, "
+          f"{len(cite_spectroscopy)} spectroscopy; keyword-inferred on top: "
+          f"{len(kw_photometry)} photometry, {len(kw_spectroscopy)} spectroscopy; "
+          f"{len(neither - kw_photometry - kw_spectroscopy)} unclassified")
+    return category
+
+
 def discover():
     """
     Run the live ADS search + scoring pipeline. Returns (clean, contaminants, scored):
@@ -397,7 +481,7 @@ def discover():
 
 
 def main():
-    clean, contaminants, _scored = discover()
+    clean, contaminants, scored = discover()
 
     # Merge author name variants ("Smith, J." / "Smith, John") into one identity where
     # possible -- see resolve_authors's docstring for exactly how and its limits. Computed
@@ -406,14 +490,19 @@ def main():
     unique_people = len(set(identities.values()))
     unique_first_authors = len({identities[(d["bibcode"], 0)] for d in clean if d.get("author")})
 
+    print("Classifying data products (photometry vs. spectroscopy)...")
+    product_category = classify_products(clean, scored)
+
     by_year = Counter()
     citations_by_year = Counter()
+    products_by_year = Counter()   # (year, category) -> count
     dawn_count = 0
     for doc in clean:
         y = doc.get("year")
         if y and str(y).isdigit():
             by_year[int(y)] += 1
             citations_by_year[int(y)] += doc.get("citation_count", 0) or 0
+            products_by_year[(int(y), product_category[doc["bibcode"]])] += 1
         if dawn_affiliated(doc, identities):
             dawn_count += 1
 
@@ -442,6 +531,17 @@ def main():
             for y in years_sorted
         ],
         "citations_by_year": citations_cumulative,
+        "products_by_year": [
+            {
+                "year": y,
+                "photometry":   products_by_year[(y, "photometry")],
+                "spectroscopy": products_by_year[(y, "spectroscopy")],
+                "both":         products_by_year[(y, "both")],
+                "unclassified": products_by_year[(y, "unclassified")],
+                "partial": y == CURRENT_YEAR,
+            }
+            for y in years_sorted
+        ],
         "community": {
             "unique_authors": unique_people,
             "orcid_coverage_pct": round(100 * orcid_coverage, 1),
@@ -458,6 +558,14 @@ def main():
             "external_adoption_pct": "Share of papers with no author affiliation string mentioning "
                                       "the Cosmic Dawn Center. An upper bound: an affiliate whose "
                                       "entry omits the center's name would be miscounted as external.",
+            "products_by_year": "Photometry = cites Valentino+23 or a photometry-specific term in "
+                                 "the paper's own DJA-context snippet; spectroscopy = cites Heintz+25, "
+                                 "de Graaff+25 or Valentino+25, or a spectroscopy-specific term. "
+                                 "Citation match is high-confidence; the keyword fallback (for whoever "
+                                 "cites none of the four, e.g. links the DJA website instead) is not -- "
+                                 "'unclassified' means neither signal was found, not that no product "
+                                 "was used. All three spectroscopy papers are from 2025, so pre-2025 "
+                                 "spectroscopy use is under-counted by construction.",
         },
         # Live, always-current ADS search, false positives already identified excluded.
         # Secondary link -- the button on the page points at ads_library_url instead.

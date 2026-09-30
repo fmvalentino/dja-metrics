@@ -121,6 +121,91 @@ function animateOnView(svgIds) {
   svgs.forEach(s => io.observe(s));
 }
 
+// Stacked bar chart: rows: [{year, partial, ...one count per key in cats}]. cats: [{key,
+// label}], in stacking order (bottom to top). Same growth animation as drawChart, but the
+// whole stack per year grows as one group -- animating individual segments separately
+// would need each one's final height, which only makes sense once the stack below it is
+// already at full height. Legend is a plain HTML row (built here) under the chart, not SVG.
+function drawStackedChart(svgId, legendId, rows, cats) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = "";
+
+  const W = 400, H = 290;
+  const padL = 8, padR = 8, padTop = 34, padBottom = 56;
+  const plotW = W - padL - padR;
+  const plotH = H - padTop - padBottom;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  const totals = rows.map(d => cats.reduce((s, c) => s + (d[c.key] || 0), 0));
+  const max = Math.max(...totals);
+  const n = rows.length;
+  const gap = 0.35;
+  const slot = plotW / n;
+  const barW = slot / (1 + gap);
+
+  [0.25, 0.5, 0.75, 1].forEach(f => {
+    const y = padTop + plotH * (1 - f);
+    el("line", { x1: padL, x2: padL + plotW, y1: y, y2: y, class: "grid-line" }, svg);
+  });
+
+  rows.forEach((d, i) => {
+    const x = padL + i * slot + (slot - barW) / 2;
+    const totalH = max > 0 ? (totals[i] / max) * plotH : 0;
+    const topY = padTop + plotH - totalH;
+
+    const g = el("g", { class: "bar-group" }, svg);
+    g.style.setProperty("--i", i);
+
+    let cursorY = padTop + plotH;   // stack bottom-up from the baseline
+    cats.forEach(c => {
+      const v = d[c.key] || 0;
+      const h = max > 0 ? (v / max) * plotH : 0;
+      if (h <= 0) return;
+      const y = cursorY - h;
+      const seg = el("rect", { x, y, width: barW, height: h, class: `seg seg-${c.key}` }, g);
+      const tipText = `${c.label}: ${fmt(v)} papers · ${d.partial ? d.year + " (year to date)" : d.year}`;
+      seg.addEventListener("mouseenter", () => {
+        const tip = tooltip();
+        tip.textContent = tipText;
+        tip.classList.add("show");
+      });
+      seg.addEventListener("mousemove", (e) => {
+        const tip = tooltip();
+        tip.style.left = e.clientX + "px";
+        tip.style.top = e.clientY + "px";
+      });
+      seg.addEventListener("mouseleave", () => tooltip().classList.remove("show"));
+      cursorY = y;
+    });
+
+    if (totals[i] > 0) {
+      const val = el("text", {
+        x: x + barW / 2, y: topY - 8, class: "bar-label", "text-anchor": "middle",
+      }, svg);
+      val.textContent = fmt(totals[i]);
+      val.style.setProperty("--i", i);
+    }
+
+    const label = d.partial ? `${d.year}†` : `${d.year}`;
+    el("text", {
+      x: x + barW / 2, y: padTop + plotH + 22, class: "axis-label", "text-anchor": "middle",
+    }, svg).textContent = label;
+  });
+
+  if (rows.some(d => d.partial)) {
+    el("text", {
+      x: padL + plotW, y: padTop + plotH + 42, class: "axis-label", "text-anchor": "end",
+    }, svg).textContent = "† year to date";
+  }
+
+  const legend = document.getElementById(legendId);
+  if (legend) {
+    legend.innerHTML = cats.map(c =>
+      `<span class="legend-item"><span class="legend-dot dot-${c.key}"></span>${c.label}</span>`
+    ).join("");
+  }
+}
+
 function compactFmt(n) {
   return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "k" : fmt(n);
 }
@@ -196,7 +281,13 @@ async function main() {
 
   drawChart("growth-chart", data.by_year, "count", false, "papers");
   drawChart("citations-chart", data.citations_by_year, "cumulative", true, "citations");
-  animateOnView(["growth-chart", "citations-chart"]);
+  drawStackedChart("products-chart", "products-legend", data.products_by_year, [
+    { key: "photometry",   label: "Photometry" },
+    { key: "spectroscopy", label: "Spectroscopy" },
+    { key: "both",         label: "Both" },
+    { key: "unclassified", label: "Unclassified" },
+  ]);
+  animateOnView(["growth-chart", "citations-chart", "products-chart"]);
 
   const c = data.community;
   document.getElementById("stat-authors-note").textContent =
