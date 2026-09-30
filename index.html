@@ -92,21 +92,17 @@
     <p class="section-note">Full-text search on NASA ADS for &ldquo;Dawn JWST Archive&rdquo; or the
       standalone acronym &ldquo;DJA&rdquo;, published or on arXiv since 2023. Each hit is scored
       from its highlighted context to separate genuine archive use from a person's initials or an
-      unrelated match, then reviewed by hand where the automatic score is ambiguous. Runnable
-      example, reproducing the numbers above end to end:
+      unrelated match, then reviewed by hand where the score is ambiguous. Runnable example,
+      reproducing the numbers above end to end:
       <a href="https://github.com/fmvalentino/dja-metrics/blob/main/notebook/dja_discovery_example.ipynb" target="_blank" rel="noopener">dja_discovery_example.ipynb</a>.
-      To see this same search running live on ADS right now, with only the false positives
-      already caught excluded &mdash; rather than the fixed, hand-checked library above &mdash;
+      For the same search running live on ADS, false positives already caught excluded
+      &mdash; not the fixed, hand-checked library above &mdash;
       use <a id="ads-search-link" href="#" target="_blank" rel="noopener">this link</a>.
     </p>
-    <p class="section-note">Because the count above comes from a live search rebuilt from
-      scratch every month, a paper can briefly vanish from it around the moment it gets
-      journal-published: ADS retires its arXiv listing and assigns a new bibcode, but the
-      new record's full text usually isn't searchable again for a few days. When that
-      happens the paper is recovered automatically by matching its title against what was
-      confirmed in the previous run, so the count stays complete rather than dipping for
-      a few days each time &mdash; the fixed library above never has this problem at all,
-      since it's a static list rather than a live search.</p>
+    <p class="section-note">A paper can briefly drop out of the count right when it's published:
+      ADS retires the arXiv bibcode for a new one, and the new record isn't searchable again for
+      a few days. The script recovers it by matching title against the previous run, so the count
+      doesn't dip. The curated library, a fixed list, never hits this.</p>
     <p id="load-error" class="section-note" hidden style="color:#b23b3b;">
       Could not load the current numbers (data/metrics.json). Try again in a moment.
     </p>
