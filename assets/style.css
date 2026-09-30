@@ -7,10 +7,26 @@
   --muted:    #9fa3a6;
   --accent:   #c79720;
   --accent-hover: #d4a122;
+  --accent-light: #e3c583;
   --border:   #d2d7d9;
   --panel:    #f5f6f7;
   --panel-alt:#eff1f2;
   --surface:  #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:      #e7e9ea;
+    --body:     #b3b9bd;
+    --muted:    #82898d;
+    --accent:   #e0ad3a;
+    --accent-hover: #eabb4c;
+    --accent-light: #a4864f;
+    --border:   #383e41;
+    --panel:    #202426;
+    --panel-alt:#262a2c;
+    --surface:  #16181a;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -24,6 +40,7 @@ body {
   font-family: "Open Sans", sans-serif;
   font-size: 15px;
   line-height: 1.65;
+  transition: background-color .2s ease-in-out, color .2s ease-in-out;
 }
 
 h1, h2, h3 {
@@ -65,6 +82,19 @@ section:first-of-type { border-top: 0; }
 section > h2 { font-size: 1.4em; margin-bottom: 1em; }
 section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size: 0.95em; }
 
+/* Each section (and the footer) eases in the first time it's on screen -- including at
+   load, for whatever's already in the viewport. See revealOnView in chart.js. */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transition: none; opacity: 1; transform: none; }
+}
+
 /* ---------------------------------------------------------------- hero counter */
 .hero {
   display: flex;
@@ -100,11 +130,60 @@ section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size:
 #growth-chart, #citations-chart {
   width: 100%; height: auto; overflow: visible; font-family: "Open Sans", sans-serif;
 }
-#growth-chart .bar, #citations-chart .bar { fill: var(--accent); }
-#growth-chart .bar.partial, #citations-chart .bar.partial { fill: #e3c583; }
+#growth-chart .bar, #citations-chart .bar { fill: var(--accent); cursor: pointer; }
+#growth-chart .bar.partial, #citations-chart .bar.partial { fill: var(--accent-light); }
+#growth-chart .bar:hover, #citations-chart .bar:hover { fill: var(--accent-hover); }
 #growth-chart .bar-label, #citations-chart .bar-label { fill: var(--ink); font-weight: 600; font-size: 13px; }
 #growth-chart .axis-label, #citations-chart .axis-label { fill: var(--body); font-size: 12px; }
 #growth-chart .grid-line, #citations-chart .grid-line { stroke: var(--border); stroke-width: 1; }
+
+/* Hover tooltip, positioned by chart.js at the cursor -- shows the exact value even where
+   the bar's own label is compact-formatted (e.g. "11k"). */
+.chart-tooltip {
+  position: fixed;
+  left: 0; top: 0;
+  transform: translate(-50%, calc(-100% - 12px));
+  pointer-events: none;
+  background: var(--ink);
+  color: var(--surface);
+  font-family: "Open Sans", sans-serif;
+  font-size: 0.78em;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: .4em .65em;
+  border-radius: .3em;
+  opacity: 0;
+  transition: opacity .12s ease;
+  z-index: 20;
+}
+.chart-tooltip.show { opacity: 1; }
+
+/* Bars grow up from the baseline, oldest year first; value labels fade in once their bar
+   has landed. Triggered by adding .in to the <svg> (see animateOnView in chart.js). */
+#growth-chart .bar, #citations-chart .bar {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transform: scaleY(0);
+  transition: transform .5s cubic-bezier(.22, .9, .3, 1);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+#growth-chart.in .bar, #citations-chart.in .bar { transform: scaleY(1); }
+
+#growth-chart .bar-label, #citations-chart .bar-label {
+  opacity: 0;
+  transition: opacity .3s ease;
+  transition-delay: calc(var(--i, 0) * 70ms + .4s);
+}
+#growth-chart.in .bar-label, #citations-chart.in .bar-label { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  #growth-chart .bar, #citations-chart .bar,
+  #growth-chart .bar-label, #citations-chart .bar-label {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}
 
 /* ---------------------------------------------------------------- stat grid */
 .stats {
@@ -164,6 +243,11 @@ section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size:
   color: #fff;
 }
 .button.primary:hover { background-color: var(--accent-hover); }
+.button .arrow { display: inline-block; transition: transform .2s ease; }
+.button:hover .arrow { transform: translateX(4px); }
+@media (prefers-reduced-motion: reduce) {
+  .button .arrow { transition: none; }
+}
 
 .search-panel {
   background: var(--panel);

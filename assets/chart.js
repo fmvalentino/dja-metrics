@@ -14,9 +14,21 @@ function fmt(n) {
   return n.toLocaleString("en-US");
 }
 
+let tooltipEl = null;
+function tooltip() {
+  if (!tooltipEl) {
+    tooltipEl = document.createElement("div");
+    tooltipEl.className = "chart-tooltip";
+    document.body.appendChild(tooltipEl);
+  }
+  return tooltipEl;
+}
+
 // svgId: target <svg>. rows: [{year, partial, ...}]. valueKey: which field to plot.
 // shortFmt: true rounds large values (citations) to a compact label so bars stay readable.
-function drawChart(svgId, rows, valueKey, shortFmt) {
+// unit: plain-language noun for the hover tooltip, which always shows the exact,
+// un-rounded number even where the bar's own label is compact-formatted (e.g. "11k").
+function drawChart(svgId, rows, valueKey, shortFmt, unit) {
   const svg = document.getElementById(svgId);
   svg.innerHTML = "";
 
@@ -46,15 +58,31 @@ function drawChart(svgId, rows, valueKey, shortFmt) {
     const x = padL + i * slot + (slot - barW) / 2;
     const y = padTop + plotH - h;
 
-    el("rect", {
+    const bar = el("rect", {
       x, y, width: barW, height: Math.max(h, 1),
       rx: 3, ry: 3,
       class: "bar" + (d.partial ? " partial" : ""),
     }, svg);
+    bar.style.setProperty("--i", i);
 
-    el("text", {
+    const tipText = `${fmt(v)} ${unit} · ${d.partial ? d.year + " (year to date)" : d.year}`;
+    bar.addEventListener("mouseenter", () => {
+      const tip = tooltip();
+      tip.textContent = tipText;
+      tip.classList.add("show");
+    });
+    bar.addEventListener("mousemove", (e) => {
+      const tip = tooltip();
+      tip.style.left = e.clientX + "px";
+      tip.style.top = e.clientY + "px";
+    });
+    bar.addEventListener("mouseleave", () => tooltip().classList.remove("show"));
+
+    const val = el("text", {
       x: x + barW / 2, y: y - 8, class: "bar-label", "text-anchor": "middle",
-    }, svg).textContent = labelFmt(v);
+    }, svg);
+    val.textContent = labelFmt(v);
+    val.style.setProperty("--i", i);
 
     const label = d.partial ? `${d.year}†` : `${d.year}`;
     el("text", {
@@ -69,8 +97,88 @@ function drawChart(svgId, rows, valueKey, shortFmt) {
   }
 }
 
+// Bars grow up (shortest delay first = oldest year first) and their value labels fade in
+// right after, the first time each chart scrolls into view. One-shot: once played, the
+// chart is left in its finished state. Skipped entirely for prefers-reduced-motion.
+function animateOnView(svgIds) {
+  const svgs = svgIds.map(id => document.getElementById(id)).filter(Boolean);
+  if (!svgs.length) return;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    svgs.forEach(s => s.classList.add("in"));
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  svgs.forEach(s => io.observe(s));
+}
+
 function compactFmt(n) {
   return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "k" : fmt(n);
+}
+
+// Fades + lifts each matched element in the first time it scrolls into view (or immediately,
+// for whatever is already on screen at load). One-shot, and skipped for prefers-reduced-motion.
+function revealOnView(selector) {
+  const els = Array.from(document.querySelectorAll(selector));
+  if (!els.length) return;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    els.forEach(e => e.classList.add("in"));
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  els.forEach(e => io.observe(e));
+}
+
+// Counts a number up from 0 to target, easing out, the first time its element scrolls into
+// view. formatter renders the in-progress (rounded) and final value alike.
+function countUp(target_el, target, formatter, duration = 900) {
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    target_el.textContent = formatter(target * eased);
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// items: [{el, target, formatter}]
+function countUpOnView(items) {
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    items.forEach(it => { it.el.textContent = it.formatter(it.target); });
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const item = items.find(it => it.el === entry.target);
+      if (entry.isIntersecting && item) {
+        countUp(item.el, item.target, item.formatter);
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+  items.forEach(it => io.observe(it.el));
 }
 
 async function main() {
@@ -86,17 +194,21 @@ async function main() {
     return;
   }
 
-  document.getElementById("total-papers").textContent = fmt(data.total_papers);
-  drawChart("growth-chart", data.by_year, "count", false);
-  drawChart("citations-chart", data.citations_by_year, "cumulative", true);
+  drawChart("growth-chart", data.by_year, "count", false, "papers");
+  drawChart("citations-chart", data.citations_by_year, "cumulative", true, "citations");
+  animateOnView(["growth-chart", "citations-chart"]);
 
   const c = data.community;
-  document.getElementById("stat-authors").textContent = fmt(c.unique_authors);
   document.getElementById("stat-authors-note").textContent =
     `Matched by ORCID where available (${c.orcid_coverage_pct}% of author entries).`;
-  document.getElementById("stat-first-authors").textContent = fmt(c.unique_first_authors);
-  document.getElementById("stat-team-size").textContent = c.median_authors_per_paper;
-  document.getElementById("stat-external").textContent = c.external_adoption_pct + "%";
+
+  countUpOnView([
+    { el: document.getElementById("total-papers"), target: data.total_papers, formatter: v => fmt(Math.round(v)) },
+    { el: document.getElementById("stat-authors"), target: c.unique_authors, formatter: v => fmt(Math.round(v)) },
+    { el: document.getElementById("stat-first-authors"), target: c.unique_first_authors, formatter: v => fmt(Math.round(v)) },
+    { el: document.getElementById("stat-external"), target: c.external_adoption_pct, formatter: v => Math.round(v) + "%" },
+    { el: document.getElementById("stat-team-size"), target: c.median_authors_per_paper, formatter: v => Math.round(v) },
+  ]);
 
   const genDate = new Date(data.generated_at);
   const genDateFmt = genDate.toLocaleDateString("en-US", {
@@ -113,8 +225,9 @@ async function main() {
   } else {
     // no library synced yet (see scripts/sync_ads_library.py) -- fall back to the live search
     libLink.href = data.ads_search_url;
-    libLink.textContent = "Search ADS →";
+    libLink.innerHTML = 'Search ADS <span class="arrow" aria-hidden="true">&rarr;</span>';
   }
 }
 
 main();
+revealOnView(".reveal"); // independent of the metrics.json fetch, so sections still reveal on a load error
