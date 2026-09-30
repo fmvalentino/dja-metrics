@@ -22,27 +22,23 @@
     <h2> Articles using DJA data products</h2>
     <p class="section-note">From a curated list, based on full-text search plus manual
       review. See <a href="#methodology">methodology</a>.</p>
-    <div class="hero">
-      <div class="count-block">
-        <div class="count" id="total-papers">&hellip;</div>
-        <div class="count-label">papers as of <span id="papers-as-of">&hellip;</span></div>
+    <div class="hero-count">
+      <span class="count" id="total-papers">&hellip;</span>
+      <span class="count-label">papers as of <span id="papers-as-of">&hellip;</span></span>
+    </div>
+    <div class="chart-row">
+      <div class="chart-col">
+        <div class="chart-caption">Papers per year</div>
+        <svg id="growth-chart" role="img" aria-label="Confirmed DJA papers by publication year"></svg>
       </div>
-      <div class="chart-block">
-        <div class="chart-row">
-          <div class="chart-col">
-            <div class="chart-caption">Papers per year</div>
-            <svg id="growth-chart" role="img" aria-label="Confirmed DJA papers by publication year"></svg>
-          </div>
-          <div class="chart-col">
-            <div class="chart-caption">Cumulative citations to papers using DJA products</div>
-            <svg id="citations-chart" role="img" aria-label="Cumulative citations to DJA papers by publication year"></svg>
-          </div>
-          <div class="chart-col">
-            <div class="chart-caption">Data products used</div>
-            <svg id="products-chart" role="img" aria-label="Confirmed DJA papers by data product and publication year"></svg>
-            <div class="chart-legend" id="products-legend"></div>
-          </div>
-        </div>
+      <div class="chart-col">
+        <div class="chart-caption">Cumulative citations to papers using DJA products</div>
+        <svg id="citations-chart" role="img" aria-label="Cumulative citations to DJA papers by publication year"></svg>
+      </div>
+      <div class="chart-col">
+        <div class="chart-caption">Data products used</div>
+        <svg id="products-chart" role="img" aria-label="Confirmed DJA papers by data product and publication year"></svg>
+        <div class="chart-legend" id="products-legend"></div>
       </div>
     </div>
   </section>

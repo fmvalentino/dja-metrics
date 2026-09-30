@@ -106,33 +106,30 @@ section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size:
 }
 
 /* ---------------------------------------------------------------- hero counter */
-.hero {
+/* A single line above the (now full-width) chart row, not a column competing with the
+   three charts for space -- that's what made three charts feel cramped. */
+.hero-count {
   display: flex;
+  align-items: baseline;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 2em;
+  gap: .5em;
+  margin-bottom: 1.75em;
 }
-.hero .count-block { flex: 0 0 auto; }
-.hero .count {
+.hero-count .count {
   font-family: "Roboto Slab", serif;
   font-weight: 700;
-  font-size: 4.5em;
+  font-size: 2.6em;
   color: var(--accent);
   line-height: 1;
 }
-.hero .count-label {
-  font-size: 0.95em;
+.hero-count .count-label {
+  font-size: 1em;
   color: var(--body);
-  margin-top: 0.3em;
-  white-space: nowrap;
 }
-/* three chart-cols at their min-width (below) plus two row gaps is what this needs to
-   not wrap -- see .chart-row -- so its own min-width just needs to not clamp tighter. */
-.hero .chart-block { flex: 1 1 34em; min-width: 36em; }
 
 /* ------------------------------------------------- growth + citations + products charts (SVG, drawn by chart.js) */
-.chart-row { display: flex; flex-wrap: wrap; gap: 1.5em; }
-.chart-col { flex: 1 1 12em; min-width: 12em; }
+.chart-row { display: flex; flex-wrap: wrap; gap: 2em; }
+.chart-col { flex: 1 1 16em; min-width: 16em; }
 .chart-caption {
   font-family: "Roboto Slab", serif;
   font-size: 0.85em;
@@ -323,6 +320,5 @@ footer.bottom a { color: var(--muted); border-bottom-color: var(--muted); }
 @media screen and (max-width: 640px) {
   .wrap { padding: 0 1.25em; }
   header.top h1 { font-size: 1.6em; }
-  .hero .count { font-size: 3.2em; }
-  .hero .chart-block { min-width: 100%; }
+  .hero-count .count { font-size: 2em; }
 }
