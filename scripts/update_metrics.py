@@ -98,11 +98,24 @@ KEY_PAPERS = {
 # whole paper -- a bare "NIRCam" mention is noise anywhere else in a JWST paper, but is a
 # real signal right next to the DJA reference itself). Fallback for whoever cites none of
 # the four KEY_PAPERS (e.g. links the DJA website instead of a methods paper) -- lower
-# confidence than a citation match. Excludes ambiguous bare terms like "redshift"
-# (photo-z and spec-z catalogs both use it).
-PHOTOM_KW_RE = re.compile(r"photometr|catalog|mosaic|imaging|nircam|\bmiri\b|grizli|morpholog|"
-                           r"segmentation|psf-matched|multiband", re.I)
-SPEC_KW_RE   = re.compile(r"spectr|nirspec|prism|\bmsa\b|grism|msaexp|emission[- ]line", re.I)
+# confidence than a citation match. Two tiers: a "strong" hit (an instrument/mode name, a
+# filter designation like F277W, or "zspec") outweighs a "weak" one (a generic word like
+# "catalog", or a team-member surname that also shows up on the other product's papers).
+# Excludes ambiguous bare terms like "redshift" (photo-z and spec-z catalogs both use it).
+PHOTOM_STRONG_RE = re.compile(r"nircam|\bmiri\b|mosaic|segmentation|psf-matched|morpholog|\bF\d{3,4}[WMN]\b", re.I)
+PHOTOM_WEAK_RE   = re.compile(r"photometr|catalog|imaging|multiband|grizli|\bimages?\b|magnitud|genin", re.I)
+SPEC_STRONG_RE   = re.compile(r"nirspec|prism|\bmsa\b|msaexp|grism|zspec", re.I)
+SPEC_WEAK_RE     = re.compile(r"spectr|emission[- ]line|broad[- ]line|heintz|de graaff", re.I)
+
+
+def product_score(text):
+    """(photometry, spectroscopy) score for a snippet: 2 per strong hit, 1 per weak hit,
+    each counted once (a repeated word doesn't add more). Whichever side scores higher
+    wins; equal nonzero scores mean genuine dual evidence ("both"); zero-zero means no
+    usable signal at all."""
+    photom = 2 * bool(PHOTOM_STRONG_RE.search(text)) + bool(PHOTOM_WEAK_RE.search(text))
+    spec   = 2 * bool(SPEC_STRONG_RE.search(text))   + bool(SPEC_WEAK_RE.search(text))
+    return photom, spec
 
 
 def ads_get(path, params, retries=3):
@@ -465,7 +478,7 @@ def classify_products(clean, scored):
     """
     Classify each confirmed paper by which DJA product(s) it uses -- photometry (imaging
     catalogs), spectroscopy (NIRSpec), both, or unclassified. Citation-confirmed first
-    (see KEY_PAPERS), falling back to the keyword pass (PHOTOM_KW_RE / SPEC_KW_RE) for
+    (see KEY_PAPERS), falling back to the weighted keyword pass (product_score) for
     whoever cites none of the four -- e.g. links the DJA website instead of a methods
     paper. Spot-checked in dja_auto_discovery.ipynb section 8 before this was ported
     here. Returns {bibcode: "photometry" | "spectroscopy" | "both" | "unclassified"}.
@@ -477,14 +490,19 @@ def classify_products(clean, scored):
     for bib in KEY_PAPERS["spectroscopy"]:
         cite_spectroscopy |= citing_bibcodes(bib) & dja_bibcodes
 
-    # keyword fallback, only for whoever cites none of the four key papers
+    # keyword fallback, only for whoever cites none of the four key papers -- whichever
+    # side scores higher wins; a tied nonzero score is genuine dual evidence ("both")
     neither = dja_bibcodes - cite_photometry - cite_spectroscopy
     kw_photometry, kw_spectroscopy = set(), set()
     for bib in neither:
         text = " ".join(s["text"] for s in scored.get(bib, {}).get("snippets", []) if s.get("hit"))
-        if PHOTOM_KW_RE.search(text):
+        photom, spec = product_score(text)
+        if photom > spec:
             kw_photometry.add(bib)
-        if SPEC_KW_RE.search(text):
+        elif spec > photom:
+            kw_spectroscopy.add(bib)
+        elif photom > 0:
+            kw_photometry.add(bib)
             kw_spectroscopy.add(bib)
 
     category = {}

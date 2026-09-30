@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T11:00:56+00:00",
+  "generated_at": "2026-09-30T11:37:46+00:00",
   "total_papers": 430,
   "by_year": [
     {
@@ -64,18 +64,18 @@
     },
     {
       "year": 2025,
-      "photometry": 48,
-      "spectroscopy": 45,
-      "both": 35,
-      "unclassified": 20,
+      "photometry": 53,
+      "spectroscopy": 49,
+      "both": 30,
+      "unclassified": 16,
       "partial": false
     },
     {
       "year": 2026,
-      "photometry": 39,
-      "spectroscopy": 97,
-      "both": 52,
-      "unclassified": 59,
+      "photometry": 41,
+      "spectroscopy": 108,
+      "both": 45,
+      "unclassified": 53,
       "partial": true
     }
   ],
