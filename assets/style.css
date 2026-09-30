@@ -135,6 +135,12 @@ section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size:
   font-size: 0.85em;
   font-weight: 700;
   color: var(--body);
+  line-height: 1.3;
+  /* reserves room for 2 lines even when the caption is one -- so a neighboring chart
+     whose caption *does* wrap never pushes its bars out of line with the others, which
+     is what actually matters (the legend under the third chart can still make that
+     column taller overall; only the bars' baselines need to match). */
+  min-height: 2.6em;
   margin-bottom: 0.5em;
 }
 #growth-chart, #citations-chart, #products-chart {
