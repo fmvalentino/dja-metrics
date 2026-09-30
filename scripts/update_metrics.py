@@ -30,6 +30,7 @@ import requests
 ROOT       = Path(__file__).resolve().parent.parent
 DATA_JSON  = ROOT / "data" / "metrics.json"
 FLAGS_CSV  = ROOT / "data" / "manual_flags.csv"   # manual clean/contaminant corrections, see README
+PRODUCT_FLAGS_CSV = ROOT / "data" / "manual_product_flags.csv"   # human-reviewed photometry/spectroscopy corrections
 LIBRARY_ID_FILE = ROOT / "data" / "ads_library_id.txt"   # id of the curated ADS Library, see sync_ads_library.py
 KNOWN_CSV  = ROOT / "data" / "known_clean_bibcodes.csv"   # last run's confirmed papers, see resolve_missing
 
@@ -280,6 +281,21 @@ def load_manual_flags():
     return over
 
 
+def load_manual_product_flags():
+    """
+    {bibcode: (uses_photometry, uses_spectroscopy)} from data/manual_product_flags.csv --
+    ground truth from a human pass over the automatic classification (see
+    ads_dja_papers/data_products_spotcheck.html in the private notebook repo), not just
+    another vote. Overrides both the citation and keyword classification unconditionally.
+    """
+    over = {}
+    if PRODUCT_FLAGS_CSV.exists():
+        with open(PRODUCT_FLAGS_CSV, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                over[row["bibcode"]] = (row["photometry"] == "True", row["spectroscopy"] == "True")
+    return over
+
+
 def load_known_bibcodes():
     """{bibcode: title} confirmed clean as of the last run -- see resolve_missing."""
     known = {}
@@ -505,18 +521,24 @@ def classify_products(clean, scored):
             kw_photometry.add(bib)
             kw_spectroscopy.add(bib)
 
+    overrides = load_manual_product_flags()
     category = {}
     for bib in dja_bibcodes:
-        p = bib in cite_photometry or bib in kw_photometry
-        s = bib in cite_spectroscopy or bib in kw_spectroscopy
+        if bib in overrides:
+            p, s = overrides[bib]
+        else:
+            p = bib in cite_photometry or bib in kw_photometry
+            s = bib in cite_spectroscopy or bib in kw_spectroscopy
         category[bib] = ("both" if p and s else
                           "photometry" if p else
                           "spectroscopy" if s else
                           "unclassified")
+    n_overridden = sum(1 for bib in dja_bibcodes if bib in overrides)
+    n_unclassified = sum(1 for c in category.values() if c == "unclassified")
     print(f"  data products -- citation-confirmed: {len(cite_photometry)} photometry, "
           f"{len(cite_spectroscopy)} spectroscopy; keyword-inferred on top: "
           f"{len(kw_photometry)} photometry, {len(kw_spectroscopy)} spectroscopy; "
-          f"{len(neither - kw_photometry - kw_spectroscopy)} unclassified")
+          f"{n_unclassified} unclassified ({n_overridden} corrected by manual review)")
     return category
 
 

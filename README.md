@@ -54,6 +54,17 @@ records of the same paper are merged, keeping the published version. Papers
 the automatic score gets wrong are corrected by hand and recorded in
 `data/manual_flags.csv`.
 
+Each confirmed paper is also classified by data product -- photometry,
+spectroscopy, both, or unclassified. Citation-confirmed first: citing
+Valentino+23 means photometry, citing Heintz+25, de Graaff+25 or Valentino+25
+means spectroscopy (`KEY_PAPERS` in the script). For whoever cites none of
+the four -- typically a paper that just links the DJA website -- a weighted
+keyword score on the paper's own DJA-context snippet decides instead
+(instrument/mode names and filter designations outweigh generic words like
+"catalog"). Corrections from a human pass over that classification are
+recorded in `data/manual_product_flags.csv` and override both passes
+unconditionally.
+
 ## How it stays current
 
 Two different cadences, on purpose:
@@ -108,6 +119,9 @@ data/known_candidates.csv    every bibcode reviewed in a past sync -- what makes
 data/known_clean_bibcodes.csv  last run's confirmed papers -- lets update_metrics.py recover
                               one that briefly vanishes from ADS full-text search around the
                               moment it gets journal-published (see resolve_missing in the script)
+data/manual_product_flags.csv  human-reviewed photometry/spectroscopy corrections, from a
+                              checkbox pass over the automatic classification -- overrides
+                              the citation and keyword classification unconditionally
 scripts/update_metrics.py    rebuilds data/metrics.json from ADS -- monthly, automatic
 scripts/sync_ads_library.py  syncs the curated library -- manual, ~every 6 months, new
                               candidates get a checkbox review first (see review_html.py)
