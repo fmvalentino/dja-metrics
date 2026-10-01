@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T11:37:46+00:00",
+  "generated_at": "2026-10-01T12:20:07+00:00",
   "total_papers": 430,
   "by_year": [
     {
@@ -31,17 +31,17 @@
     },
     {
       "year": 2024,
-      "cumulative": 2487,
+      "cumulative": 2494,
       "partial": false
     },
     {
       "year": 2025,
-      "cumulative": 7870,
+      "cumulative": 7907,
       "partial": false
     },
     {
       "year": 2026,
-      "cumulative": 10498,
+      "cumulative": 10571,
       "partial": true
     }
   ],
@@ -64,18 +64,18 @@
     },
     {
       "year": 2025,
-      "photometry": 53,
-      "spectroscopy": 49,
-      "both": 30,
+      "photometry": 52,
+      "spectroscopy": 47,
+      "both": 33,
       "unclassified": 16,
       "partial": false
     },
     {
       "year": 2026,
-      "photometry": 41,
-      "spectroscopy": 108,
-      "both": 45,
-      "unclassified": 53,
+      "photometry": 49,
+      "spectroscopy": 110,
+      "both": 46,
+      "unclassified": 42,
       "partial": true
     }
   ],
