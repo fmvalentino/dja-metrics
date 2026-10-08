@@ -212,6 +212,8 @@ def dedupe(docs, hl):
         g.sort(key=lambda d: (bool(re.match(r"\d{4}arXiv", d["bibcode"])), -(d.get("citation_count") or 0)))
         kept = dict(g[0])
         kept["citation_count"] = max((d.get("citation_count") or 0) for d in g)
+        # every bibcode / identifier of the group, so a manual flag set on any record still applies
+        kept["identifier"] = sorted({i for d in g for i in [d["bibcode"]] + list(d.get("identifier") or [])})
         out.append(kept)
         for d in g:
             if d["bibcode"] in hl:
@@ -325,12 +327,20 @@ def resolve_missing(old_bib, old_title):
     search almost always means the paper just got journal-published: ADS retires the old
     arXiv bibcode and assigns a new one, but the new record's full text isn't reindexed
     for search right away (can take a few days) -- so for a while the paper is
-    unfindable by the full-text query under either bibcode. ADS *does* populate the new
-    record's title immediately, though (faster than it cross-links the old bibcode into
-    `identifier`, which is not reliable enough yet to use here), so look it up that way
-    instead and return the doc under its current, correct bibcode. Returns None if the
-    title doesn't turn up an exact match -- a real removal, not a publication transition.
+    unfindable by the full-text query under either bibcode. Look it up by the old bibcode
+    (once ADS cross-links the two records it is an `identifier` of the new one) and, failing
+    that, by title (ADS populates the new record's title immediately, before the cross-link),
+    and return the doc under its current, correct bibcode. Returns None if neither turns up
+    a match -- a real removal, not a publication transition.
     """
+    # first by the old bibcode itself: ADS keeps it as an identifier of the current record once
+    # the two are cross-linked, which also works for titles that defeat the phrase search below
+    # (e.g. "z ~ 1.5-7" vs "z ~ 1.5 - 7")
+    resp = ads_get("/search/query", {"q": f'identifier:"{old_bib}"', "fl": FIELDS, "rows": 5})
+    docs = [d for d in resp.get("response", {}).get("docs", []) if d.get("doctype") != "abstract"]
+    if docs:
+        docs.sort(key=lambda d: d.get("doctype") == "eprint")   # the published record, when there is one
+        return docs[0]
     if len(old_title.strip()) < 15:
         return None
     # strip anything that isn't a word or space (LaTeX math like "$2.7<z<7$" is common in
@@ -577,7 +587,9 @@ def discover():
         sc = score_paper(bib, hl_map)
         scored[bib] = sc
         auto = "clean" if sc["score"] >= MIN_SCORE else "contaminants"
-        group = flags.get(bib, auto)
+        # a flag set on the preprint still applies once the paper is re-bibcoded on publication
+        flag = next((flags[i] for i in [bib] + list(doc.get("identifier") or []) if i in flags), None)
+        group = flag or auto
         (clean if group == "clean" else contaminants).append(doc)
 
     # Safety net: a paper confirmed clean last run that isn't anywhere in today's fresh
@@ -596,7 +608,9 @@ def discover():
         if bib in found or flags.get(bib) == "contaminants":
             continue   # already accounted for, or a deliberate manual removal -- drop it
         doc = resolve_missing(bib, title)
-        if doc and doc["bibcode"] not in found:
+        if doc and doc["bibcode"] in found:
+            continue   # resolves to a paper already counted under its new bibcode -- drop the old one
+        if doc:
             clean.append(doc)
             found.add(doc["bibcode"])
             scored[doc["bibcode"]] = {

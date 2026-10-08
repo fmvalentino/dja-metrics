@@ -161,8 +161,9 @@ bibcode,title
 2025arXiv250719706M,MINERVA: A NIRCam Medium Band and MIRI Imaging Survey to Unlock the Hidden Gems of the Distant Universe
 2025arXiv250804791F,Physical properties of galaxies and the UV Luminosity Function from $z\sim6$ to $z\sim14$ in COSMOS-Web
 2025arXiv250816948E,Galaxies and Black Holes in the First Billion Years
+2025arXiv250919453U,The Platonic Universe: Do Foundation Models See the Same Sky?
 2025arXiv251006681C,The Star-forming Main Sequence and Bursty Star-formation Histories at $z&gt;1.4$ in JADES and AURORA
-2025arXiv251007936H,"Inefficient dust production in a massive, metal-rich galaxy at $z=7.13$ uncovered by JWST and ALMA"
+2025arXiv251007936H,"Evidence for inefficient dust production in a massive, metal-rich galaxy at $z=7.13$ uncovered by JWST and ALMA"
 2025arXiv251011770F,Early massive galaxy formation in the core of a galaxy protocluster 650 million years after the Big Bang
 2025arXiv251025024M,Where Galaxies Go to Die: The Environments of Massive Quiescent Galaxies at $3&lt;z&lt;5$
 2025arXiv251103802D,Making the most of pure parallels: Machine learning augmented photometric redshifts for sparse JWST filter sets
@@ -217,6 +218,7 @@ bibcode,title
 2026A&A...712A.153B,A Cosmic Archipelago of lensed metal-poor galaxies at z ∼ 6
 2026A&A...712A.169Z,There and back again: Neutral outflows in z ~ 3.5 quiescent galaxies
 2026A&A...713A.121J,NOEMA<SUP>3D</SUP>: Resolving radial gas flows in disk galaxies at z ~ 1.1-1.6 with high-resolution CO observations
+2026A&A...713A.237B,The Blue Jay survey: Deep JWST spectroscopy for a representative sample of galaxies at cosmic noon
 2026AJ....171..191M,Discovery of Seven Cold and Distant Brown Dwarfs with JWST RUBIES
 2026ARA&A..64..179W,Quenching of Star Formation in Massive Galaxies
 2026ApJ...996...37P,The AURORA Survey: Ionizing Photon Production Efficiency with Minimal Nebular Dust Attenuation Systematics
@@ -268,6 +270,9 @@ bibcode,title
 2026ApJ..1008L..11C,Toward Unbreaking the Universe: MINERVA Measurements of Color Gradients in Massive Quiescent Galaxies Can Help Ease Too-early Star Formation Tensions
 2026ApJ..1008L..22L,A Steep-extinction Quasi-stellar Object at z = 4.6: JWST Evidence for Abundant Small Dust Grains
 2026ApJ..1008L..64M,No Luminous Little Red Dots: A Sharp Cutoff in Their Luminosity Function
+2026ApJ..1009...83K,Balmer Decrements and Nebular and Stellar Reddening in JADES Galaxies at 2.7 &lt; z &lt; 7
+2026ApJ..1009..106H,"Interplay of Compaction, Quenching, and Black Hole Growth in the Most Massive Galaxies since z ~ 5: Insights from JWST and Chandra Data"
+2026ApJ..1009..134K,BEACON: JWST NIRCam Pure-parallel Imaging Survey. III. Constraints on the Ultraviolet Luminosity Function and the Clustering of z ~ 7-14 Galaxies
 2026ApJ..1009..146P,Morphological and Star Formation Properties of Cosmic Noon Massive Quiescent Galaxies
 2026ApJ..1009L...4N,An Updated Characterization of Luminous Lyα Emitters at the End of Reionization
 2026ApJS..285....1S,ULTIMATE Deblending. I. A 50-band Ultraviolet to Mid-infrared Photometric Catalog Combining Space- and Ground-based Data in the JWST/PRIMER Survey
@@ -292,7 +297,7 @@ bibcode,title
 2026MNRAS.551g1206K,Metal mayhem at z ~ 7-10: diversity and evolution of gas-phase metallicity gradients
 2026MNRAS.551g1537L,Electron densities of typical low-mass galaxies at z ≃2-7 from stacked JWST/NIRSpec spectra
 2026MNRAS.551g1567D,Little red dots host black hole stars: a unified family of gas-reddened AGN revealed by JWST/NIRSpec spectroscopy
-2026MNRAS.tmp.1475C,JADES: Evolution of nitrogen abundances in star-forming galaxies from z ~ 1.5 - 7
+2026MNRAS.552g1575C,JADES: evolution of nitrogen abundances in star-forming galaxies from z ~ 1.5-7
 2026MNRAS.tmp.1597R,Diverse Histories and Common Origins of Nitrogen-enhanced JWST Galaxies
 2026NatAs..10..448H,A dense web of neutral gas in a galaxy proto-cluster post-reionization
 2026NatAs..10..753Z,The composite spectrum of little red dots from a standard inner disk and an unstable outer disk
@@ -327,7 +332,6 @@ bibcode,title
 2026arXiv260301370M,Everything Every Band All at Once II: The Relationship Between Optical Size and Stellar Mass Over Eight Billion Years of Cosmic History
 2026arXiv260302317L,Synthetic Spectral Library of Optically Thick Atmospheres for Little Red Dots
 2026arXiv260306409T,The Collective Voice of Ly$α$ Emitters: Insights from JWST Stacked Spectroscopy
-2026arXiv260311338K,Balmer Decrements and Nebular-Stellar Reddening in JADES Galaxies at $2.7<z<7$
 2026arXiv260313471R,"A hot, nebular-dominated galaxy interacting with a pristine PopIII system uncovered by JWST"
 2026arXiv260315841R,"EGS-z11-R0: a red, dust-rich galaxy at Cosmic Dawn"
 2026arXiv260317667M,The Engine and its Flows: Little Red Dot spectra are shaped by the column densities of their gas envelopes
@@ -341,7 +345,6 @@ bibcode,title
 2026arXiv260411677B,Do little red dots really form a distinct class of astronomical objects?
 2026arXiv260413408L,ALESS--JWST: Dust-driven Morphologies and Hidden Stellar Mass in $z\sim3$ Sub-millimeter Galaxies
 2026arXiv260415002K,Do galaxy mergers increase star formation and turbulence at cosmic noon?
-2026arXiv260417963K,BEACON: JWST NIRCam Pure-parallel Imaging Survey. III. Constraints on the UV LF and the Clustering of z~7-14 Galaxies
 2026arXiv260418504C,"NOEMA3D: Extended CO, [C I] and dust in massive star-forming main-sequence galaxies at cosmic noon"
 2026arXiv260418522S,A Census of Na D-traced neutral ISM and outflows at $0.6&lt;z&lt;4$
 2026arXiv260421007K,DeepDive: Simultaneous Formation of Massive Quiescent Galaxies in High-Redshift Galaxy Overdensities
@@ -396,7 +399,6 @@ bibcode,title
 2026arXiv260821515C,On the importance of the IGM/CGM enrichment in determining chemical abundances during the first 600 Myr
 2026arXiv260821522B,Beyond orientation: Evidence for distinct physical regimes among Little Red Dots and Little Blue Dots
 2026arXiv260823671P,"More Numerous and Bluer: Companions of the Brightest Little Red Dots Differ from Control Galaxies at $&gt;3σ$, Hinting at Synchronized Black Hole Seed Formation"
-2026arXiv260824124S,"Interplay of Compaction, Quenching, and Black Hole Growth in the Most Massive Galaxies since $z\sim5$: Insights from JWST and Chandra Data"
 2026arXiv260825021M,The ionizing properties of JWST's compact broad-line emitters
 2026arXiv260830011K,Caught Napping by JWST UNCOVER+MegaScience: Constraining bursty star formation histories and number densities of mini-quenched galaxies at redshifts 4-7
 2026arXiv260900112K,Skyfire: A Spectroscopic Census of Little Red Dots and Broad-Line AGN in the CEERS Field
@@ -428,6 +430,8 @@ bibcode,title
 2026arXiv260926879B,EPIMETHEUS: Effective PSF inferred from mosaics
 2026arXiv260927130S,Search for High-Ionization Nebular Emission (SHINE). I. A Systematically Selected [Ne V] Sample at z &gt; 3 with JWST/NIRSpec PRISM
 2026arXiv260928474P,A sub-100 pc view at z~5 of a Multiply-Imaged Massive Quiescent Galaxy
+2026arXiv260934827P,DREAMS: Taking the Temperature of a Massive Galaxy at z ~ 11
+2026arXiv260936076M,CHAMPS: Data Reduction and Detection of ~3300 Dusty Galaxies at 1.2 mm
 2026yCat..37070352G,"VizieR Online Data Catalog: Escape fraction estimates of EoR galaxies (Giovinazzo+, 2026)"
 2026yCat..37100364I,"VizieR Online Data Catalog: DeepDive + DJA QG catalog (Ito+, 2026)"
 2026yCat..37110177S,"VizieR Online Data Catalog: Distant quiescent galaxies DJA data (Scarpe+, 2026)"

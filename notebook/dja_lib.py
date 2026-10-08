@@ -131,6 +131,8 @@ def dedupe(docs, hl):
         g.sort(key=lambda d: (bool(re.match(r"\d{4}arXiv", d["bibcode"])), -(d.get("citation_count") or 0)))
         kept = dict(g[0])
         kept["citation_count"] = max((d.get("citation_count") or 0) for d in g)
+        # every bibcode / identifier of the group, so a manual flag set on any record still applies
+        kept["identifier"] = sorted({i for d in g for i in [d["bibcode"]] + list(d.get("identifier") or [])})
         out.append(kept)
         for d in g:
             if d["bibcode"] in hl:

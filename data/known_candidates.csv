@@ -161,6 +161,7 @@ bibcode,classification
 2025arXiv250719706M,clean
 2025arXiv250804791F,clean
 2025arXiv250816948E,clean
+2025arXiv250919453U,clean
 2025arXiv251006681C,clean
 2025arXiv251007936H,clean
 2025arXiv251011770F,clean
@@ -217,6 +218,7 @@ bibcode,classification
 2026A&A...712A.153B,clean
 2026A&A...712A.169Z,clean
 2026A&A...713A.121J,clean
+2026A&A...713A.237B,clean
 2026AJ....171..191M,clean
 2026ARA&A..64..179W,clean
 2026ApJ...996...37P,clean
@@ -268,6 +270,11 @@ bibcode,classification
 2026ApJ..1008L..11C,clean
 2026ApJ..1008L..22L,clean
 2026ApJ..1008L..64M,clean
+2026ApJ..1009...83K,clean
+2026ApJ..1009..106H,clean
+2026ApJ..1009..134K,clean
+2026ApJ..1009..146P,clean
+2026ApJ..1009L...4N,clean
 2026ApJS..285....1S,clean
 2026ApJS..285...62Z,clean
 2026MNRAS.545f1961L,clean
@@ -290,7 +297,7 @@ bibcode,classification
 2026MNRAS.551g1206K,clean
 2026MNRAS.551g1537L,clean
 2026MNRAS.551g1567D,clean
-2026MNRAS.tmp.1475C,clean
+2026MNRAS.552g1575C,clean
 2026MNRAS.tmp.1597R,clean
 2026NatAs..10..448H,clean
 2026NatAs..10..753Z,clean
@@ -303,6 +310,7 @@ bibcode,classification
 2026OJAp....958199C,clean
 2026OJAp....962505S,clean
 2026OJAp....965333A,clean
+2026OJAp....970057D,clean
 2026RAA....26i5020L,clean
 2026RNAAS..10...83L,clean
 2026RNAAS..10..144P,clean
@@ -324,7 +332,6 @@ bibcode,classification
 2026arXiv260301370M,clean
 2026arXiv260302317L,clean
 2026arXiv260306409T,clean
-2026arXiv260311338K,clean
 2026arXiv260313471R,clean
 2026arXiv260315841R,clean
 2026arXiv260317667M,clean
@@ -338,15 +345,12 @@ bibcode,classification
 2026arXiv260411677B,clean
 2026arXiv260413408L,clean
 2026arXiv260415002K,clean
-2026arXiv260417963K,clean
 2026arXiv260418504C,clean
 2026arXiv260418522S,clean
 2026arXiv260421007K,clean
-2026arXiv260502493P,clean
 2026arXiv260505327G,clean
 2026arXiv260506770H,clean
 2026arXiv260507976M,clean
-2026arXiv260514313N,clean
 2026arXiv260515189Z,clean
 2026arXiv260515712L,clean
 2026arXiv260530410C,clean
@@ -395,7 +399,6 @@ bibcode,classification
 2026arXiv260821515C,clean
 2026arXiv260821522B,clean
 2026arXiv260823671P,clean
-2026arXiv260824124S,clean
 2026arXiv260825021M,clean
 2026arXiv260830011K,clean
 2026arXiv260900112K,clean
@@ -404,7 +407,6 @@ bibcode,classification
 2026arXiv260901586P,clean
 2026arXiv260902558P,clean
 2026arXiv260907025B,clean
-2026arXiv260907825D,clean
 2026arXiv260909265C,clean
 2026arXiv260909271K,clean
 2026arXiv260909274S,clean
@@ -428,6 +430,8 @@ bibcode,classification
 2026arXiv260926879B,clean
 2026arXiv260927130S,clean
 2026arXiv260928474P,clean
+2026arXiv260934827P,clean
+2026arXiv260936076M,clean
 2026yCat..37070352G,clean
 2026yCat..37100364I,clean
 2026yCat..37110177S,clean
@@ -476,4 +480,8 @@ bibcode,classification
 2026arXiv260818962T,contaminants
 2026arXiv260902574K,contaminants
 2026arXiv260924567M,contaminants
+2026arXiv260935945S,contaminants
+2026arXiv260936002T,contaminants
+2026arXiv260936656Y,contaminants
+2026arXiv260938080H,contaminants
 2026enap....1..520G,contaminants
