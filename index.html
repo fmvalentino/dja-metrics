@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DJA Articles &amp; Community</title>
+<meta name="description" content="Live count of papers using the Dawn JWST Archive, and who is using it, rebuilt monthly from NASA ADS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,400italic,600italic|Roboto+Slab:400,700" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Dawn JWST Archive</div>
+    <h1>Articles &amp; Community</h1>
+    <p class="lede">How many papers use DJA data, how fast that number is growing, and how many different people are behind them.</p>
+  </header>
+
+  <section id="growth" class="reveal">
+    <h2> Articles using DJA data products</h2>
+    <p class="section-note">From a curated list, based on full-text search plus manual
+      review. See <a href="#methodology">methodology</a>.</p>
+    <div class="hero-count">
+      <span class="count" id="total-papers">&hellip;</span>
+      <span class="count-label">papers as of <span id="papers-as-of">&hellip;</span></span>
+    </div>
+    <div class="chart-row">
+      <div class="chart-col">
+        <div class="chart-caption">Papers per year</div>
+        <svg id="growth-chart" role="img" aria-label="Confirmed DJA papers by publication year"></svg>
+      </div>
+      <div class="chart-col">
+        <div class="chart-caption">Cumulative citations</div>
+        <svg id="citations-chart" role="img" aria-label="Cumulative citations to DJA papers by publication year"></svg>
+      </div>
+      <div class="chart-col">
+        <div class="chart-caption">Data products used</div>
+        <svg id="products-chart" role="img" aria-label="Confirmed DJA papers by data product and publication year"></svg>
+        <div class="chart-legend" id="products-legend"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="community" class="reveal">
+    <h2>Who is using it</h2>
+    <!-- <p class="section-note">Citation counts show a paper got noticed; these numbers are about who
+      is actually behind the work.</p> -->
+    <dl class="stats">
+      <div class="stat">
+        <dt id="stat-authors">&hellip;</dt>
+        <dd>Unique authors across all articles
+          <span class="stat-note" id="stat-authors-note">Matched by ORCID where available.</span>
+        </dd>
+      </div>
+      <div class="stat">
+        <dt id="stat-first-authors">&hellip;</dt>
+        <dd>Different authors have led a paper using DJA products
+          <span class="stat-note">Counts distinct first authors.</span>
+        </dd>
+      </div>
+      <div class="stat">
+        <dt id="stat-external">&hellip;</dt>
+        <dd>of Papers have no Cosmic Dawn Center co-author
+          <span class="stat-note">Upper bound on external, independent use of the archive.</span>
+        </dd>
+      </div>
+      <div class="stat">
+        <dt id="stat-team-size">&hellip;</dt>
+        <dd>Median authors per paper</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section id="explore" class="reveal">
+    <h2>Explore it yourself</h2>
+    <div class="search-panel">
+      <div class="copy">
+        <strong>Browse the curated list on ADS.</strong>
+        <p>Every article above as an ADS Library: sortable, exportable
+          (BibTeX and more), and with ADS's own citation metrics built in. This is a fixed list, not a live search. Synced manually roughly every 6 months; see
+          <a href="#methodology">methodology</a> for the live, always-current search
+          this is checked against.</p>
+      </div>
+      <a id="ads-library-link" class="button primary" href="#" target="_blank" rel="noopener">Browse library <span class="arrow" aria-hidden="true">&rarr;</span></a>
+    </div>
+  </section>
+
+  <section id="methodology" class="reveal">
+    <h2>Methodology</h2>
+    <p class="section-note">Full-text search on NASA ADS for &ldquo;Dawn JWST Archive&rdquo; or the
+      standalone acronym &ldquo;DJA&rdquo;, published or on arXiv since 2023. Each hit is scored
+      from its highlighted context to separate genuine archive use from a person's initials or an
+      unrelated match, then reviewed by hand where the score is ambiguous. Runnable example,
+      reproducing the numbers above end to end:
+      <a href="https://github.com/fmvalentino/dja-metrics/blob/main/notebook/dja_discovery_example.ipynb" target="_blank" rel="noopener">dja_discovery_example.ipynb</a>.
+      For the same search running live on ADS, false positives already caught excluded
+      &mdash; not the fixed, hand-checked library above &mdash;
+      use <a id="ads-search-link" href="#" target="_blank" rel="noopener">this link</a>.
+    </p>
+    <p class="section-note">A paper can briefly drop out of the count right when it's published:
+      ADS retires the arXiv bibcode for a new one, and the new record isn't searchable again for
+      a few days. The script recovers it by matching title against the previous run, so the count
+      doesn't dip. The curated library, a fixed list, never hits this.</p>
+    <p id="load-error" class="section-note" hidden style="color:#b23b3b;">
+      Could not load the current numbers (data/metrics.json). Try again in a moment.
+    </p>
+  </section>
+
+  <footer class="bottom reveal">
+    <p>Last rebuilt <span id="last-updated">&hellip;</span>, automatically, on the 1st of every
+      month. Numbers come from NASA ADS and can shift slightly between updates as new citations
+      and papers appear.
+      <a href="https://github.com/fmvalentino/dja-metrics" target="_blank" rel="noopener">View on GitHub &rarr;</a></p>
+  </footer>
+</div>
+
+<script src="assets/chart.js"></script>
+</body>
+</html>

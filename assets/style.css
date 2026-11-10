@@ -1,0 +1,330 @@
+/* Palette and type match dawn-cph.github.io/dja (Roboto Slab + Open Sans, gold accent),
+   so this page reads as part of the same site rather than a bolted-on dashboard. */
+
+:root {
+  --ink:      #3d4449;
+  --body:     #7f888f;
+  --muted:    #9fa3a6;
+  --accent:   #c79720;
+  --accent-hover: #d4a122;
+  --accent-light: #e3c583;
+  --border:   #d2d7d9;
+  --panel:    #f5f6f7;
+  --panel-alt:#eff1f2;
+  --surface:  #fff;
+  /* data-products chart: photometry reuses the site's own gold accent (it's the
+     "primary" product); the other three are picked for hue separation from it and
+     from each other, without leaning on red/green (the colorblind-confusable pair). */
+  --cat-photometry:   var(--accent);
+  --cat-spectroscopy: #4d7ea8;
+  --cat-both:         #8a6aa0;
+  --cat-unclassified: #b9bec2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:      #e7e9ea;
+    --body:     #b3b9bd;
+    --muted:    #82898d;
+    --accent:   #e0ad3a;
+    --accent-hover: #eabb4c;
+    --accent-light: #a4864f;
+    --border:   #383e41;
+    --panel:    #202426;
+    --panel-alt:#262a2c;
+    --surface:  #16181a;
+    --cat-spectroscopy: #6fa0c9;
+    --cat-both:         #ab8dc0;
+    --cat-unclassified: #5b6265;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: none; }
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--body);
+  font-family: "Open Sans", sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  transition: background-color .2s ease-in-out, color .2s ease-in-out;
+}
+
+h1, h2, h3 {
+  color: var(--ink);
+  font-family: "Roboto Slab", serif;
+  font-weight: 700;
+  margin: 0 0 0.5em 0;
+  line-height: 1.3;
+}
+
+a { color: var(--accent); text-decoration: none; border-bottom: dotted 1px; }
+a:hover { border-bottom-style: solid; }
+
+.wrap {
+  max-width: 62em;
+  margin: 0 auto;
+  padding: 0 2em;
+}
+
+/* ---------------------------------------------------------------- header */
+header.top {
+  border-bottom: solid 5px var(--accent);
+  padding: 2.5em 0 1.5em 0;
+}
+header.top .eyebrow {
+  font-family: "Roboto Slab", serif;
+  text-transform: uppercase;
+  letter-spacing: .075em;
+  font-size: 0.85em;
+  color: var(--muted);
+  margin-bottom: 0.4em;
+}
+header.top h1 { font-size: 2.1em; margin-bottom: 0.2em; }
+header.top p.lede { max-width: 42em; margin: 0; }
+
+/* ---------------------------------------------------------------- sections */
+section { border-top: solid 2px var(--border); padding: 3em 0; }
+section:first-of-type { border-top: 0; }
+section > h2 { font-size: 1.4em; margin-bottom: 1em; }
+section > p.section-note { max-width: 42em; margin: -0.5em 0 1.5em 0; font-size: 0.95em; }
+
+/* Each section (and the footer) eases in the first time it's on screen -- including at
+   load, for whatever's already in the viewport. See revealOnView in chart.js. */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transition: none; opacity: 1; transform: none; }
+}
+
+/* ---------------------------------------------------------------- hero counter */
+/* A single line above the (now full-width) chart row, not a column competing with the
+   three charts for space -- that's what made three charts feel cramped. */
+.hero-count {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .5em;
+  margin-bottom: 1.75em;
+}
+.hero-count .count {
+  font-family: "Roboto Slab", serif;
+  font-weight: 700;
+  font-size: 2.6em;
+  color: var(--accent);
+  line-height: 1;
+}
+.hero-count .count-label {
+  font-size: 1em;
+  color: var(--body);
+}
+
+/* ------------------------------------------------- growth + citations + products charts (SVG, drawn by chart.js) */
+.chart-row { display: flex; flex-wrap: wrap; gap: 2em; }
+.chart-col { flex: 1 1 16em; min-width: 16em; }
+.chart-caption {
+  font-family: "Roboto Slab", serif;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: var(--body);
+  line-height: 1.3;
+  /* reserves room for 2 lines even when the caption is one -- so a neighboring chart
+     whose caption *does* wrap never pushes its bars out of line with the others, which
+     is what actually matters (the legend under the third chart can still make that
+     column taller overall; only the bars' baselines need to match). */
+  min-height: 2.6em;
+  margin-bottom: 0.5em;
+}
+#growth-chart, #citations-chart, #products-chart {
+  width: 100%; height: auto; overflow: visible; font-family: "Open Sans", sans-serif;
+}
+#growth-chart .bar, #citations-chart .bar { fill: var(--accent); cursor: pointer; }
+#growth-chart .bar.partial, #citations-chart .bar.partial { fill: var(--accent-light); }
+#growth-chart .bar:hover, #citations-chart .bar:hover { fill: var(--accent-hover); }
+#growth-chart .bar-label, #citations-chart .bar-label, #products-chart .bar-label {
+  fill: var(--ink); font-weight: 600; font-size: 13px;
+}
+#growth-chart .axis-label, #citations-chart .axis-label, #products-chart .axis-label {
+  fill: var(--body); font-size: 12px;
+}
+#growth-chart .grid-line, #citations-chart .grid-line, #products-chart .grid-line {
+  stroke: var(--border); stroke-width: 1;
+}
+
+/* products-chart segments: one rect per category per year, stacked -- see
+   drawStackedChart in chart.js. Hover brightens a segment and shows its exact count. */
+#products-chart .seg { cursor: pointer; }
+#products-chart .seg-photometry   { fill: var(--cat-photometry); }
+#products-chart .seg-spectroscopy { fill: var(--cat-spectroscopy); }
+#products-chart .seg-both         { fill: var(--cat-both); }
+#products-chart .seg-unclassified { fill: var(--cat-unclassified); }
+#products-chart .seg-photometry:hover { fill: var(--accent-hover); }
+#products-chart .seg-spectroscopy:hover,
+#products-chart .seg-both:hover,
+#products-chart .seg-unclassified:hover { filter: brightness(1.15); }
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5em 1.1em;
+  margin-top: .7em;
+  font-size: 0.76em;
+  color: var(--body);
+}
+.legend-item { display: inline-flex; align-items: center; gap: .4em; white-space: nowrap; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: 0 0 auto; }
+.legend-dot.dot-photometry   { background: var(--cat-photometry); }
+.legend-dot.dot-spectroscopy { background: var(--cat-spectroscopy); }
+.legend-dot.dot-both         { background: var(--cat-both); }
+.legend-dot.dot-unclassified { background: var(--cat-unclassified); }
+
+/* Hover tooltip, positioned by chart.js at the cursor -- shows the exact value even where
+   the bar's own label is compact-formatted (e.g. "11k"). */
+.chart-tooltip {
+  position: fixed;
+  left: 0; top: 0;
+  transform: translate(-50%, calc(-100% - 12px));
+  pointer-events: none;
+  background: var(--ink);
+  color: var(--surface);
+  font-family: "Open Sans", sans-serif;
+  font-size: 0.78em;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: .4em .65em;
+  border-radius: .3em;
+  opacity: 0;
+  transition: opacity .12s ease;
+  z-index: 20;
+}
+.chart-tooltip.show { opacity: 1; }
+
+/* Bars grow up from the baseline, oldest year first; value labels fade in once their bar
+   has landed. Triggered by adding .in to the <svg> (see animateOnView in chart.js).
+   products-chart's bars are a <g class="bar-group"> of stacked segments -- the group
+   grows as one unit, since an individual segment's final height only makes sense once
+   the stack below it is already full height. */
+#growth-chart .bar, #citations-chart .bar, #products-chart .bar-group {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transform: scaleY(0);
+  transition: transform .5s cubic-bezier(.22, .9, .3, 1);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+#growth-chart.in .bar, #citations-chart.in .bar, #products-chart.in .bar-group { transform: scaleY(1); }
+
+#growth-chart .bar-label, #citations-chart .bar-label, #products-chart .bar-label {
+  opacity: 0;
+  transition: opacity .3s ease;
+  transition-delay: calc(var(--i, 0) * 70ms + .4s);
+}
+#growth-chart.in .bar-label, #citations-chart.in .bar-label, #products-chart.in .bar-label { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  #growth-chart .bar, #citations-chart .bar, #products-chart .bar-group,
+  #growth-chart .bar-label, #citations-chart .bar-label, #products-chart .bar-label {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------- stat grid */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13em, 1fr));
+  gap: 1.5em;
+  padding: 0;
+  margin: 0;
+}
+.stats .stat {
+  border: solid 1px var(--border);
+  border-radius: .375em;
+  padding: 1.25em 1.4em;
+}
+.stats dt {
+  font-family: "Roboto Slab", serif;
+  font-size: 1.9em;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 0.2em 0;
+}
+.stats dd {
+  margin: 0;
+  font-size: 0.92em;
+}
+.stats .stat-note {
+  display: block;
+  margin-top: 0.5em;
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------------- buttons (matches the DJA site's .button) */
+.button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-block;
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
+  border: 0;
+  border-radius: .375em;
+  color: var(--accent);
+  font-family: "Roboto Slab", serif;
+  font-weight: 700;
+  font-size: 0.85em;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0.9em 1.75em;
+  cursor: pointer;
+  transition: background-color .2s ease-in-out, color .2s ease-in-out;
+}
+.button:hover { background-color: rgba(199,151,32,0.08); border-bottom: 0; }
+.button.primary {
+  background-color: var(--accent);
+  box-shadow: none;
+  color: #fff;
+}
+.button.primary:hover { background-color: var(--accent-hover); }
+.button .arrow { display: inline-block; transition: transform .2s ease; }
+.button:hover .arrow { transform: translateX(4px); }
+@media (prefers-reduced-motion: reduce) {
+  .button .arrow { transition: none; }
+}
+
+.search-panel {
+  background: var(--panel);
+  border-radius: .375em;
+  padding: 1.75em 2em;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5em;
+  justify-content: space-between;
+}
+.search-panel .copy { flex: 1 1 24em; }
+.search-panel .copy p { margin: 0.3em 0 0 0; font-size: 0.9em; }
+
+/* ---------------------------------------------------------------- footer */
+footer.bottom {
+  border-top: solid 2px var(--border);
+  padding: 2em 0 3em 0;
+  font-size: 0.85em;
+  color: var(--muted);
+}
+footer.bottom a { color: var(--muted); border-bottom-color: var(--muted); }
+
+@media screen and (max-width: 640px) {
+  .wrap { padding: 0 1.25em; }
+  header.top h1 { font-size: 1.6em; }
+  .hero-count .count { font-size: 2em; }
+}

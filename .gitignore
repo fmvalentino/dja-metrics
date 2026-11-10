@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# per-run review output from scripts/sync_ads_library.py -- regenerated each time,
+# not meant to be published; download a flagged_*.csv from these and add it to the review
+# flags of the private analysis repository, which exports data/manual_flags.csv
+scripts/review_new_clean.html
+scripts/review_new_contaminants.html
+scripts/flagged_new_*.csv
+
+# local run output from notebook/dja_discovery_example.ipynb (OUTPUT_DIR in its config cell)
+notebook/output/
