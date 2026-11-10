@@ -26,10 +26,13 @@ updates of ADS/NASA
 - *Unique first authors* — how many different people have led a DJA
   paper, as opposed to one group publishing repeatedly. Same author-matching
   as above.
-- *Share with no Cosmic Dawn Center co-author* — papers written
-  entirely outside the group that builds and runs the archive. This is an
-  upper bound on external use: an author from the Center whose ADS
-  affiliation string omits its name is miscounted as external.
+- *Share with no active Cosmic Dawn Center co-author* — papers written
+  entirely outside the center that builds and runs the archive. A paper has a
+  center co-author when one of its authors gives the center as an affiliation
+  on that paper, or is on a short, hand-kept list of current members whose
+  papers often name another institute (`data/dawn_members.csv`; people who
+  leave the center are taken off it). The share is an upper bound on use
+  outside the center: a member missing from both would be counted as external.
 - *Median authors per paper*.
 
 **A curated library, not a live search.** The button opens
@@ -123,6 +126,8 @@ data/known_clean_bibcodes.csv  last run's confirmed papers -- lets update_metric
 data/manual_product_flags.csv  human-reviewed photometry/spectroscopy corrections, from a
                               checkbox pass over the automatic classification -- overrides
                               the citation and keyword classification unconditionally
+data/dawn_members.csv        active Cosmic Dawn Center members whose papers may omit the center,
+                              exported from the private analysis repository
 scripts/update_metrics.py    rebuilds data/metrics.json from ADS -- monthly, automatic
 scripts/sync_ads_library.py  syncs the curated library -- manual, ~every 6 months, new
                               candidates get a checkbox review first (see review_html.py)

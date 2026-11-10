@@ -42,18 +42,18 @@ INITIALS_RE = re.compile(
 )
 CTX_RE  = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in ARCHIVE_CONTEXT) + r")\b", re.I)
 # Any author affiliation string mentioning the Cosmic Dawn Center -- the institute
-# that builds and runs the DJA. Used for the "external adoption" community stat.
+# that builds and runs the DJA. Used for the share of papers with no active center co-author.
 DAWN_RE = re.compile(r"cosmic dawn", re.I)
 
-# Known DAWN/DJA core-team members whose ADS affiliation string doesn't reliably say
-# "Cosmic Dawn" (e.g. Brammer's papers mostly just say "Niels Bohr Institute, University
-# of Copenhagen" -- true, but not distinctive: plenty of non-DAWN astronomers share that
-# affiliation, so matching on it directly would be a false-positive risk of its own).
-# A paper with one of these people as an author is DAWN-affiliated regardless of wording.
-# Keyed by ORCID -- see dawn_affiliated().
-DAWN_TEAM_ORCIDS = {
-    "0000-0003-2680-005X": "Gabriel Brammer",
-}
+# Active members of the Cosmic Dawn Center whose papers may not name the center in their affiliations:
+# they count as a center co-author on every paper they sign. Everyone else counts only when the paper's
+# own affiliations name the center. The list is kept by hand in the private analysis repository (people
+# who leave the center are removed) and exported to data/dawn_members.csv.
+import csv as _csv
+import os as _os
+_MEMBERS_CSV = _os.environ.get("DAWN_MEMBERS_CSV", _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "data", "dawn_members.csv"))
+with open(_MEMBERS_CSV, encoding="utf-8") as _f:
+    DAWN_TEAM_ORCIDS = {r["orcid"]: r["name"] for r in _csv.DictReader(_f)}
 
 
 def ads_get(token, path, params):

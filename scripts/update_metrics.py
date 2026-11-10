@@ -72,15 +72,13 @@ INITIALS_RE = re.compile(
 CTX_RE  = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in ARCHIVE_CONTEXT) + r")\b", re.I)
 DAWN_RE = re.compile(r"cosmic dawn", re.I)
 
-# Known DAWN/DJA core-team members whose ADS affiliation string doesn't reliably say
-# "Cosmic Dawn" (e.g. Brammer's papers mostly just say "Niels Bohr Institute, University
-# of Copenhagen" -- true, but not distinctive: plenty of non-DAWN astronomers share that
-# affiliation, so matching on it directly would be a false-positive risk of its own).
-# A paper with one of these people as an author is DAWN-affiliated regardless of wording.
-# Keyed by ORCID -- see dawn_affiliated().
-DAWN_TEAM_ORCIDS = {
-    "0000-0003-2680-005X": "Gabriel Brammer",
-}
+# Active members of the Cosmic Dawn Center whose papers may not name the center in their affiliations:
+# they count as a center co-author on every paper they sign. Everyone else counts only when the paper's
+# own affiliations name the center. The list is kept by hand in the private analysis repository (people
+# who leave the center are removed) and exported to data/dawn_members.csv.
+DAWN_MEMBERS_CSV = Path(os.environ.get("DAWN_MEMBERS_CSV", ROOT / "data" / "dawn_members.csv"))
+with open(DAWN_MEMBERS_CSV, encoding="utf-8") as _f:
+    DAWN_TEAM_ORCIDS = {r["orcid"]: r["name"] for r in csv.DictReader(_f)}
 
 # Papers describing each DJA data product -- a formal citation to one of these is a
 # high-confidence signal for which product a paper actually built on. See
@@ -630,9 +628,9 @@ def discover():
 def main():
     clean, contaminants, scored = discover()
 
-    # Merge author name variants ("Smith, J." / "Smith, John") into one identity where
-    # possible -- see resolve_authors's docstring for exactly how and its limits. Computed
-    # before the dawn_affiliated loop below, which also uses it (DAWN_TEAM_ORCIDS).
+    # Merge the name variants of an author ("Smith, J." and "Smith, John") into one person where
+    # possible; resolve_authors explains how, and where it can go wrong. The center co-author test
+    # below (dawn_affiliated) uses the result to recognise the people listed in data/dawn_members.csv.
     identities, orcid_coverage = resolve_authors(clean)
     unique_people = len(set(identities.values()))
     unique_first_authors = len({identities[(d["bibcode"], 0)] for d in clean if d.get("author")})
@@ -702,9 +700,11 @@ def main():
                                "by surname plus matching every spelled-out given/middle-name token, "
                                "which can still occasionally over- or under-merge two people who "
                                "share a surname and only ever appear with bare initials.",
-            "external_adoption_pct": "Share of papers with no author affiliation string mentioning "
-                                      "the Cosmic Dawn Center. An upper bound: an affiliate whose "
-                                      "entry omits the center's name would be miscounted as external.",
+            "external_adoption_pct": "Share of papers with no active Cosmic Dawn Center co-author: "
+                                      "no author affiliation on the paper names the center, and no "
+                                      "author is on the list of current members whose papers may omit "
+                                      "it (data/dawn_members.csv). An upper bound on use outside the "
+                                      "center: a member missing from both is counted as external.",
             "products_by_year": "Photometry = cites Valentino+23 or a photometry-specific term in "
                                  "the paper's own DJA-context snippet; spectroscopy = cites Heintz+25, "
                                  "de Graaff+25 or Valentino+25, or a spectroscopy-specific term. "
