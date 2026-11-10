@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DJA Articles &amp; Community</title>
-<meta name="description" content="Live count of papers using the Dawn JWST Archive, and who is using it, rebuilt monthly from NASA ADS.">
+<title>DJA papers and community</title>
+<meta name="description" content="A monthly count of the papers that use the Dawn JWST Archive, and of the people who write them, rebuilt from NASA ADS.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,400italic,600italic|Roboto+Slab:400,700" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
@@ -14,14 +14,15 @@
 <div class="wrap">
   <header class="top">
     <div class="eyebrow">Dawn JWST Archive</div>
-    <h1>Articles &amp; Community</h1>
-    <p class="lede">How many papers use DJA data, how fast that number is growing, and how many different people are behind them.</p>
+    <h1>Papers and community</h1>
+    <p class="lede">This page counts the journal articles and preprints that use data from the Dawn JWST Archive (DJA), follows how quickly their number has grown, and shows how many different people have written them.</p>
   </header>
 
   <section id="growth" class="reveal">
-    <h2> Articles using DJA data products</h2>
-    <p class="section-note">From a curated list, based on full-text search plus manual
-      review. See <a href="#methodology">methodology</a>.</p>
+    <h2>Papers using DJA data products</h2>
+    <p class="section-note">The papers are found by a full-text search of NASA ADS and are
+      checked by hand whenever the automatic test is uncertain, as the
+      <a href="#methodology">methodology</a> below explains.</p>
     <div class="hero-count">
       <span class="count" id="total-papers">&hellip;</span>
       <span class="count-label">papers as of <span id="papers-as-of">&hellip;</span></span>
@@ -32,7 +33,7 @@
         <svg id="growth-chart" role="img" aria-label="Confirmed DJA papers by publication year"></svg>
       </div>
       <div class="chart-col">
-        <div class="chart-caption">Cumulative citations</div>
+        <div class="chart-caption">Citations received so far, added up by year</div>
         <svg id="citations-chart" role="img" aria-label="Cumulative citations to DJA papers by publication year"></svg>
       </div>
       <div class="chart-col">
@@ -44,9 +45,7 @@
   </section>
 
   <section id="community" class="reveal">
-    <h2>Who is using it</h2>
-    <!-- <p class="section-note">Citation counts show a paper got noticed; these numbers are about who
-      is actually behind the work.</p> -->
+    <h2>Who uses the archive</h2>
     <dl class="stats">
       <div class="stat">
         <dt id="stat-authors">&hellip;</dt>
@@ -74,14 +73,16 @@
   </section>
 
   <section id="explore" class="reveal">
-    <h2>Explore it yourself</h2>
+    <h2>Explore the papers yourself</h2>
     <div class="search-panel">
       <div class="copy">
         <strong>Browse the curated list on ADS.</strong>
-        <p>Every article above as an ADS Library: sortable, exportable
-          (BibTeX and more), and with ADS's own citation metrics built in. This is a fixed list, not a live search. Synced manually roughly every 6 months; see
-          <a href="#methodology">methodology</a> for the live, always-current search
-          this is checked against.</p>
+        <p>All the papers counted on this page are collected in a public ADS Library, where you
+          can sort them, export them in BibTeX and other formats, and see the citation metrics that
+          ADS computes. The library is a fixed list that we update by hand when possible, so it can
+          lag slightly behind the monthly count above. The
+          <a href="#methodology">methodology</a> section links to the live search that the library
+          is checked against.</p>
       </div>
       <a id="ads-library-link" class="button primary" href="#" target="_blank" rel="noopener">Browse library <span class="arrow" aria-hidden="true">&rarr;</span></a>
     </div>
@@ -89,30 +90,33 @@
 
   <section id="methodology" class="reveal">
     <h2>Methodology</h2>
-    <p class="section-note">Full-text search on NASA ADS for &ldquo;Dawn JWST Archive&rdquo; or the
-      standalone acronym &ldquo;DJA&rdquo;, published or on arXiv since 2023. Each hit is scored
-      from its highlighted context to separate genuine archive use from a person's initials or an
-      unrelated match, then reviewed by hand where the score is ambiguous. Runnable example,
-      reproducing the numbers above end to end:
-      <a href="https://github.com/fmvalentino/dja-metrics/blob/main/notebook/dja_discovery_example.ipynb" target="_blank" rel="noopener">dja_discovery_example.ipynb</a>.
-      For the same search running live on ADS, false positives already caught excluded
-      &mdash; not the fixed, hand-checked library above &mdash;
-      use <a id="ads-search-link" href="#" target="_blank" rel="noopener">this link</a>.
+    <p class="section-note">We search the full text of the papers in NASA ADS for &ldquo;Dawn JWST
+      Archive&rdquo; and for the acronym &ldquo;DJA&rdquo; on its own, in journal articles and arXiv
+      preprints from 2023 onwards. Every match is scored from the passage in which it appears, so
+      that genuine use of the archive can be told apart from a person's initials in the
+      acknowledgements or from an unrelated acronym, and the uncertain cases are read by hand. The
+      notebook
+      <a href="https://github.com/fmvalentino/dja-metrics/blob/main/notebook/dja_discovery_example.ipynb" target="_blank" rel="noopener">dja_discovery_example.ipynb</a>
+      reproduces every number on this page from start to finish. The same search can also be run
+      live on ADS through <a id="ads-search-link" href="#" target="_blank" rel="noopener">this link</a>,
+      which already leaves out the false matches we have found; unlike the library above, it also
+      shows recent papers that nobody has checked yet.
     </p>
-    <p class="section-note">A paper can briefly drop out of the count right when it's published:
-      ADS retires the arXiv bibcode for a new one, and the new record isn't searchable again for
-      a few days. The script recovers it by matching title against the previous run, so the count
-      doesn't dip. The curated library, a fixed list, never hits this.</p>
+    <p class="section-note">When a preprint is published in a journal, ADS replaces its arXiv
+      identifier with a new one, and for a few days the new record cannot be found by the full-text
+      search. The monthly update recognises these papers by their title in the previous run and
+      keeps them in the count, so the number does not drop in the meantime. The library above is
+      not affected, because it is a fixed list.</p>
     <p id="load-error" class="section-note" hidden style="color:#b23b3b;">
-      Could not load the current numbers (data/metrics.json). Try again in a moment.
+      The current numbers (data/metrics.json) could not be loaded. Please try again in a moment.
     </p>
   </section>
 
   <footer class="bottom reveal">
-    <p>Last rebuilt <span id="last-updated">&hellip;</span>, automatically, on the 1st of every
-      month. Numbers come from NASA ADS and can shift slightly between updates as new citations
-      and papers appear.
-      <a href="https://github.com/fmvalentino/dja-metrics" target="_blank" rel="noopener">View on GitHub &rarr;</a></p>
+    <p>The numbers were last updated on <span id="last-updated">&hellip;</span>. They are rebuilt
+      automatically from NASA ADS on the first day of every month, and they can change slightly from
+      one update to the next as new papers and citations appear.
+      <a href="https://github.com/fmvalentino/dja-metrics" target="_blank" rel="noopener">View the code on GitHub &rarr;</a></p>
   </footer>
 </div>
 
